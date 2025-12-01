@@ -26,17 +26,19 @@ h1, h2, h3 {
   margin: 0 0 0.5rem;
 }
 
-main.layout {
+main.layout, .app-grid, .grid-3, .layout-3 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
+  max-width: 1500px;
+  margin: 0 auto;
+  grid-template-columns: minmax(460px, 1.3fr) minmax(460px, 1.2fr) minmax(380px, 1fr);
+  gap: 24px;
 }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 1rem;
+  padding: 24px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -47,6 +49,12 @@ main.layout {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem;
+}
+
+#preview {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .field {
@@ -179,3 +187,22 @@ button:hover {
 .lines-list { display: grid; gap: 8px; }
 .line-row { display: grid; grid-template-columns: 1fr 110px 90px; gap: 8px; align-items: center; }
 .line-text, .line-pt, .line-remove { width: 100%; }
+
+.card { padding: 24px; }
+
+.chip-group input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.chip-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip-group .chip {
+  padding: 8px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+}
+.chip-group input[type="radio"]:checked + .chip {
+  border-color: #2e6ef7;
+  color: #2e6ef7;
+  background: #f1f6ff;
+  box-shadow: 0 0 0 2px rgba(46, 110, 247, 0.12) inset;
+}

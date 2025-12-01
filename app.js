@@ -17,7 +17,7 @@ let state = {
   widthIn: 5.0,
   qty: 1,
   color: { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
-  corners: 'rounded',
+  corners: 'squared',
   font: 'Calibri, Arial, Helvetica, sans-serif',
   lines: [{ text: '', pt: 22 }]
 };
@@ -29,6 +29,7 @@ const ctx = canvas.getContext('2d');
 const linesList = document.getElementById('linesList');
 const addLineBtn = document.getElementById('addLine');
 const fontSelect = document.getElementById('fontSelect');
+const cornersGroup = document.getElementById('cornersGroup');
 const MIN_LINES = 1;
 const MAX_LINES = 6;
 
@@ -37,6 +38,17 @@ if (fontSelect) {
   fontSelect.addEventListener('change', (e) => {
     state.font = e.target.value;
     render();
+  });
+}
+
+if (cornersGroup) {
+  const inputs = cornersGroup.querySelectorAll('input[name="corners"]');
+  inputs.forEach((i) => {
+    i.checked = i.value === state.corners;
+    i.addEventListener('change', () => {
+      state.corners = i.value;
+      render();
+    });
   });
 }
 
@@ -238,13 +250,6 @@ function setupControls() {
 
   document.getElementById('qty').addEventListener('input', () => {
     clampInputs();
-  });
-
-  document.getElementsByName('corners').forEach((input) => {
-    input.addEventListener('change', (e) => {
-      state.corners = e.target.value;
-      render();
-    });
   });
 }
 
