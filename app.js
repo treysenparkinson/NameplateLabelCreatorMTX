@@ -21,9 +21,14 @@ function fitFontPxToWidth(ctx, text, startPx, family, maxWidth) {
 }
 
 function drawTextLines(ctx, lines, plateX, plateY, plateW, plateH, opts) {
-  const { family, sizesPt, fg, innerPad = 12, lineGap = 0.22 } = opts;
+  const { family, sizesPt, fg, innerPad = 12, lineGap = 0.22, dpr = 1 } = opts;
 
+  // reset to neutral transform, then apply uniform HiDPI scale
   ctx.save();
+  if (ctx.resetTransform) ctx.resetTransform();
+  else ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
   ctx.fillStyle = fg || '#fff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -228,9 +233,11 @@ function render() {
   const radius = state.corners === 'rounded' ? Math.min(plateW, plateH) * 0.06 : 0;
 
   ctx.clearRect(0, 0, cssW, cssH);
+  ctx.save();
   ctx.fillStyle = state.color.bg;
   drawRoundedRect(plateX, plateY, plateW, plateH, radius);
   ctx.fill();
+  ctx.restore();
 
   const lines = (state.lines || []).map((l) => (l.text || '').trim()).filter(Boolean);
   const sizesPt = (state.lines || []).map((l) => Number(l.pt ?? l.sizePt ?? 18));
@@ -242,7 +249,8 @@ function render() {
     sizesPt,
     fg,
     innerPad: 12,
-    lineGap: 0.22
+    lineGap: 0.22,
+    dpr
   });
 }
 
