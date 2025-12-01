@@ -237,3 +237,25 @@ button:hover {
 .chip-group input[type="radio"]{position:absolute;opacity:0;pointer-events:none}
 .chip{padding:8px 12px;border:1px solid #d0d5dd;border-radius:10px;background:#fff;cursor:pointer;user-select:none}
 .chip-group input[type="radio"]:checked + .chip{border-color:#2e6ef7;color:#2e6ef7;background:#f1f6ff;box-shadow:0 0 0 2px rgba(46,110,247,.12) inset}
+
+/* Remove extra space below the app */
+#appShell {
+  margin-bottom: 0;      /* was > 0 */
+  padding-bottom: 0;     /* ensure no inner padding adds height */
+}
+
+/* Kill any generic bottom padding some wrappers may add */
+.app, .page, .page-wrap, .container, main {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Make the page background white so leftover viewport doesn't look like a blank band */
+html, body {
+  background: #fff;      /* was a light gray */
+}
+
+/* Ensure the last panel doesn't add spacing */
+#appShell > *:last-child {
+  margin-bottom: 0 !important;
+}
