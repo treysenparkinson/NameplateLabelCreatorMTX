@@ -1,4 +1,5 @@
 const PPI = 96;
+const PREVIEW_ZOOM = 1.6;
 const LS_KEY = 'ms_nameplate_saved';
 
 const COLOR_MAP = {
@@ -25,7 +26,7 @@ let state = {
 let saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
 
 const canvas = document.getElementById('preview');
-const ctx = canvas.getContext('2d');
+let ctx = canvas ? canvas.getContext('2d') : null;
 const linesList = document.getElementById('linesList');
 const addLineBtn = document.getElementById('addLine');
 const fontSelect = document.getElementById('fontSelect');
@@ -157,27 +158,41 @@ function drawCenteredLines(ctx, rect) {
 }
 
 function render() {
-  const { width: cw, height: ch } = canvas;
-  ctx.clearRect(0, 0, cw, ch);
-
   clampInputs();
+  const canvasEl = document.getElementById('preview');
+  if (!canvasEl) return;
+  const dpr = window.devicePixelRatio || 1;
 
-  const rawW = state.widthIn * PPI;
-  const rawH = state.heightIn * PPI;
-  const padding = 20;
-  const scale = Math.min((cw - padding * 2) / rawW, (ch - padding * 2) / rawH);
-  const drawW = rawW * scale;
-  const drawH = rawH * scale;
-  const x = (cw - drawW) / 2;
-  const y = (ch - drawH) / 2;
+  const wIn = Number(state.widthIn || state.width || 0);
+  const hIn = Number(state.heightIn || state.height || 0);
 
-  const radius = state.corners === 'rounded' ? Math.min(drawW, drawH) * 0.06 : 0;
+  const plateW = Math.max(1, wIn) * PPI * PREVIEW_ZOOM;
+  const plateH = Math.max(1, hIn) * PPI * PREVIEW_ZOOM;
 
+  const PAD = 48;
+
+  const cssW = plateW + PAD * 2;
+  const cssH = plateH + PAD * 2;
+
+  canvasEl.style.width = cssW + 'px';
+  canvasEl.style.height = cssH + 'px';
+
+  canvasEl.width = Math.round(cssW * dpr);
+  canvasEl.height = Math.round(cssH * dpr);
+
+  ctx = canvasEl.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const plateX = (cssW - plateW) / 2;
+  const plateY = (cssH - plateH) / 2;
+  const radius = state.corners === 'rounded' ? Math.min(plateW, plateH) * 0.06 : 0;
+
+  ctx.clearRect(0, 0, cssW, cssH);
   ctx.fillStyle = state.color.bg;
-  drawRoundedRect(x, y, drawW, drawH, radius);
+  drawRoundedRect(plateX, plateY, plateW, plateH, radius);
   ctx.fill();
 
-  drawCenteredLines(ctx, { x, y, w: drawW, h: drawH });
+  drawCenteredLines(ctx, { x: plateX, y: plateY, w: plateW, h: plateH });
 }
 
 function saveToStorage() {
