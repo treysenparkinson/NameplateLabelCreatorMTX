@@ -237,6 +237,8 @@ button:hover {
   max-width:100%;
 }
 
+canvas { transform: none !important; }
+
 .field-group{ margin:18px 0; }
 .field-group .field-label{ display:block;margin-bottom:8px;font-weight:600; }
 
