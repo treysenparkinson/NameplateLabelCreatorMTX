@@ -18,18 +18,18 @@ let state = {
   qty: 1,
   color: { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
   corners: 'rounded',
-  font: 'Inter, system-ui, Arial, Helvetica, sans-serif',
-  lines: [
-    { text: '', pt: 22 },
-    { text: '', pt: 18 },
-    { text: '', pt: 16 }
-  ]
+  font: 'Montserrat, system-ui, Arial, Helvetica, sans-serif',
+  lines: [{ text: '', pt: 22 }]
 };
 
 let saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
 
 const canvas = document.getElementById('preview');
 const ctx = canvas.getContext('2d');
+const linesList = document.getElementById('linesList');
+const addLineBtn = document.getElementById('addLine');
+const MIN_LINES = 1;
+const MAX_LINES = 6;
 
 function createColorPalette() {
   const container = document.getElementById('colorOptions');
@@ -61,18 +61,44 @@ function createColorPalette() {
   });
 }
 
-function setupLineSelectors() {
-  const sizes = [12, 14, 16, 18, 20, 22, 24, 26, 28, 32, 36];
-  ['l1pt', 'l2pt', 'l3pt'].forEach((id, idx) => {
-    const sel = document.getElementById(id);
-    sel.innerHTML = '';
-    sizes.forEach((s) => {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = `${s} pt`;
-      if (state.lines[idx].pt === s) opt.selected = true;
-      sel.appendChild(opt);
+function renderLinesControls() {
+  if (!linesList) return;
+  linesList.innerHTML = '';
+  state.lines.forEach((ln, idx) => {
+    const row = document.createElement('div');
+    row.className = 'line-row';
+    row.innerHTML = `
+      <input class="line-text" type="text" placeholder="Line ${idx + 1}" value="${ln.text}">
+      <select class="line-pt">${[28, 24, 22, 20, 18, 16, 14, 12]
+        .map((v) => `<option value="${v}" ${v === ln.pt ? 'selected' : ''}>${v} pt</option>`) 
+        .join('')}</select>
+      <button class="line-remove btn btn-light" type="button" ${state.lines.length <= MIN_LINES ? 'disabled' : ''}>Remove</button>`;
+    row.querySelector('.line-text').addEventListener('input', (e) => {
+      ln.text = e.target.value;
+      render();
     });
+    row.querySelector('.line-pt').addEventListener('change', (e) => {
+      ln.pt = Number(e.target.value);
+      render();
+    });
+    row.querySelector('.line-remove').addEventListener('click', () => {
+      if (state.lines.length > MIN_LINES) {
+        state.lines.splice(idx, 1);
+        renderLinesControls();
+        render();
+      }
+    });
+    linesList.appendChild(row);
+  });
+}
+
+if (addLineBtn) {
+  addLineBtn.addEventListener('click', () => {
+    if (state.lines.length < MAX_LINES) {
+      state.lines.push({ text: '', pt: 18 });
+      renderLinesControls();
+      render();
+    }
   });
 }
 
@@ -104,6 +130,27 @@ function drawRoundedRect(x, y, w, h, r) {
   ctx.closePath();
 }
 
+function drawCenteredLines(ctx, rect) {
+  const lh = 1.2;
+  const lines = state.lines
+    .map((l) => ({ text: (l.text || '').trim(), pt: l.pt }))
+    .filter((l) => l.text);
+  if (!lines.length) return;
+  const pxSizes = lines.map((l) => l.pt * (PPI / 72));
+  const total = pxSizes.reduce((a, p) => a + p * lh, 0);
+  let y = rect.y + rect.h / 2 - total / 2;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = state.color.fg;
+  lines.forEach((l, i) => {
+    const px = pxSizes[i];
+    ctx.font = `${px}px ${state.font}`;
+    y += (px * lh) / 2;
+    ctx.fillText(l.text, rect.x + rect.w / 2, y);
+    y += (px * lh) / 2;
+  });
+}
+
 function render() {
   const { width: cw, height: ch } = canvas;
   ctx.clearRect(0, 0, cw, ch);
@@ -125,29 +172,7 @@ function render() {
   drawRoundedRect(x, y, drawW, drawH, radius);
   ctx.fill();
 
-  const inset = drawH * 0.1;
-  const availableH = drawH - inset * 2;
-  const lineCount = state.lines.length;
-
-  state.lines.forEach((line, idx) => {
-    const text = (line.text || '').trim();
-    if (!text) return;
-    const basePx = line.pt * (PPI / 72);
-    const fontSize = basePx * scale;
-    ctx.font = `${fontSize}px ${state.font}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = state.color.fg;
-
-    const lineY = y + inset + (availableH / lineCount) * idx + (availableH / lineCount) / 2;
-
-    if (state.color.bg.toLowerCase() === '#ffffff') {
-      ctx.lineWidth = 0.75;
-      ctx.strokeStyle = '#333';
-      ctx.strokeText(text, x + drawW / 2, lineY);
-    }
-    ctx.fillText(text, x + drawW / 2, lineY);
-  });
+  drawCenteredLines(ctx, { x, y, w: drawW, h: drawH });
 }
 
 function saveToStorage() {
@@ -195,9 +220,6 @@ function setupControls() {
   document.getElementById('widthIn').value = state.widthIn.toFixed(2);
   document.getElementById('qty').value = state.qty;
   document.getElementById('fontSelect').value = state.font;
-  document.getElementById('l1').value = state.lines[0].text;
-  document.getElementById('l2').value = state.lines[1].text;
-  document.getElementById('l3').value = state.lines[2].text;
 
   ['heightIn', 'widthIn'].forEach((id) => {
     document.getElementById(id).addEventListener('input', () => {
@@ -220,20 +242,6 @@ function setupControls() {
   document.getElementById('fontSelect').addEventListener('change', (e) => {
     state.font = e.target.value;
     render();
-  });
-
-  ['l1', 'l2', 'l3'].forEach((id, idx) => {
-    document.getElementById(id).addEventListener('input', (e) => {
-      state.lines[idx].text = e.target.value;
-      render();
-    });
-  });
-
-  ['l1pt', 'l2pt', 'l3pt'].forEach((id, idx) => {
-    document.getElementById(id).addEventListener('change', (e) => {
-      state.lines[idx].pt = parseInt(e.target.value, 10);
-      render();
-    });
   });
 }
 
@@ -293,8 +301,8 @@ function setupButtons() {
 
 function init() {
   createColorPalette();
-  setupLineSelectors();
   setupControls();
+  renderLinesControls();
   setupButtons();
   renderSavedList();
   render();
