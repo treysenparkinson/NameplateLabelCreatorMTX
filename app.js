@@ -1,5 +1,4 @@
 const PPI = 96;
-const PREVIEW_ZOOM = 1.6;
 const LS_KEY = 'ms_nameplate_saved';
 
 const COLOR_MAP = {
@@ -160,16 +159,27 @@ function drawCenteredLines(ctx, rect) {
 function render() {
   clampInputs();
   const canvasEl = document.getElementById('preview');
-  if (!canvasEl) return;
+  const wrap = document.getElementById('previewWrap');
+  if (!canvasEl || !wrap) return;
+
   const dpr = window.devicePixelRatio || 1;
 
-  const wIn = Number(state.widthIn || state.width || 0);
-  const hIn = Number(state.heightIn || state.height || 0);
+  const wIn = Math.max(1, Number(state.widthIn || state.width || 0));
+  const hIn = Math.max(1, Number(state.heightIn || state.height || 0));
 
-  const plateW = Math.max(1, wIn) * PPI * PREVIEW_ZOOM;
-  const plateH = Math.max(1, hIn) * PPI * PREVIEW_ZOOM;
-
+  const BASE_ZOOM = 1.3;
   const PAD = 48;
+
+  let desiredPlateW = wIn * PPI * BASE_ZOOM;
+  let desiredPlateH = hIn * PPI * BASE_ZOOM;
+
+  const availW = Math.max(320, wrap.clientWidth || canvasEl.parentElement.clientWidth || window.innerWidth);
+
+  const fitScale = Math.min(1, (availW - PAD * 2) / desiredPlateW);
+  const zoom = Math.max(0.85, BASE_ZOOM * fitScale);
+
+  const plateW = wIn * PPI * zoom;
+  const plateH = hIn * PPI * zoom;
 
   const cssW = plateW + PAD * 2;
   const cssH = plateH + PAD * 2;
@@ -193,6 +203,12 @@ function render() {
   ctx.fill();
 
   drawCenteredLines(ctx, { x: plateX, y: plateY, w: plateW, h: plateH });
+}
+
+const previewWrapEl = document.getElementById('previewWrap');
+if (typeof ResizeObserver !== 'undefined' && previewWrapEl) {
+  const ro = new ResizeObserver(() => render());
+  ro.observe(previewWrapEl);
 }
 
 function saveToStorage() {
