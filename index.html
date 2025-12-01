@@ -13,7 +13,7 @@
   <main class="layout">
     <section class="panel preview-panel">
       <h1>Nameplate Label Creator</h1>
-      <canvas id="preview" width="520" height="420" aria-label="Nameplate preview"></canvas>
+      <canvas id="preview" width="900" height="560" aria-label="Nameplate preview"></canvas>
       <div class="field">
         <label for="qty">Qty:</label>
         <input id="qty" type="number" min="1" value="1" />
@@ -44,9 +44,14 @@
       <div class="palette" id="colorOptions"></div>
 
       <h3>Corners</h3>
-      <div class="field inline">
-        <label><input type="radio" name="corners" value="rounded" checked /> Rounded</label>
-        <label><input type="radio" name="corners" value="squared" /> Squared</label>
+      <div class="field-group">
+        <label class="field-label">Corners</label>
+        <div class="chip-group" id="cornersGroup">
+          <input type="radio" id="cornersRounded" name="corners" value="rounded">
+          <label class="chip" for="cornersRounded">Rounded</label>
+          <input type="radio" id="cornersSquared" name="corners" value="squared" checked>
+          <label class="chip" for="cornersSquared">Squared</label>
+        </div>
       </div>
 
       <div class="field">
