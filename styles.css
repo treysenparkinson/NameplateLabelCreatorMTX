@@ -51,12 +51,6 @@ main.layout, .app-grid, .grid-3, .layout-3 {
   padding: 0.5rem;
 }
 
-#preview {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
 .field {
   display: flex;
   flex-direction: column;
@@ -215,7 +209,7 @@ button:hover {
   margin:0 auto;
   padding:0 16px;
   grid-template-columns:
-    minmax(560px,1.7fr) minmax(600px,1.5fr) minmax(420px,1fr);
+    minmax(640px,1.9fr) minmax(600px,1.5fr) minmax(420px,1fr);
 }
 @media (max-width:1400px){
   #appShell{
@@ -230,6 +224,19 @@ button:hover {
 .panel,.card{ overflow:visible; padding:24px; }
 .saved-panel{ overflow:visible; }
 
+#previewWrap{
+  width:100%;
+  overflow:visible;
+  padding:0;
+}
+
+#preview{
+  width:100%;
+  height:auto;
+  display:block;
+  max-width:100%;
+}
+
 .field-group{ margin:18px 0; }
 .field-group .field-label{ display:block;margin-bottom:8px;font-weight:600; }
 
@@ -238,5 +245,3 @@ button:hover {
 .chip{padding:8px 12px;border:1px solid #d0d5dd;border-radius:10px;background:#fff;cursor:pointer;user-select:none}
 .chip-group input[type="radio"]:checked + .chip{border-color:#2e6ef7;color:#2e6ef7;background:#f1f6ff;box-shadow:0 0 0 2px rgba(46,110,247,.12) inset}
 
-#previewWrap{ width:100%; overflow:hidden; }
-#preview{ width:100%; height:auto; display:block; }
