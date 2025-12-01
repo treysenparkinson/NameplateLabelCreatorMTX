@@ -1,6 +1,57 @@
 const PPI = 96;
 const LS_KEY = 'ms_nameplate_saved';
 
+const PT_TO_PX = 96 / 72; // 1pt at 96dpi
+
+function makeFont(px, family) {
+  return `${px}px ${family || 'Calibri'}`;
+}
+
+function fitFontPxToWidth(ctx, text, startPx, family, maxWidth) {
+  let px = Math.max(1, startPx);
+  ctx.font = makeFont(px, family);
+  let w = ctx.measureText(text).width;
+  if (w <= maxWidth) return px;
+  while (w > maxWidth && px > 1) {
+    px -= Math.max(0.5, Math.ceil((w - maxWidth) / 50)); // fast converge
+    ctx.font = makeFont(px, family);
+    w = ctx.measureText(text).width;
+  }
+  return Math.max(1, px);
+}
+
+function drawTextLines(ctx, lines, plateX, plateY, plateW, plateH, opts) {
+  const { family, sizesPt, fg, innerPad = 12, lineGap = 0.22 } = opts;
+
+  ctx.save();
+  ctx.fillStyle = fg || '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const maxW = Math.max(1, plateW - innerPad * 2);
+
+  const finalPx = lines.map((text, i) => {
+    const targetPx = (sizesPt[i] || sizesPt[0] || 18) * PT_TO_PX;
+    return fitFontPxToWidth(ctx, text, targetPx, family, maxW);
+  });
+
+  const heights = finalPx.map((px) => px);
+  const gaps = finalPx.length > 1 ? (finalPx.length - 1) * (finalPx[0] * lineGap) : 0;
+  const totalH = heights.reduce((a, b) => a + b, 0) + gaps;
+
+  let y = plateY + (plateH - totalH) / 2 + heights[0] / 2;
+  const cx = plateX + plateW / 2;
+
+  lines.forEach((text, i) => {
+    const px = finalPx[i];
+    ctx.font = makeFont(px, family);
+    ctx.fillText(text, cx, y);
+    y += px + finalPx[0] * lineGap;
+  });
+
+  ctx.restore();
+}
+
 const COLOR_MAP = {
   'Green/White': { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
   'Red/White': { bg: '#cc0000', fg: '#ffffff', name: 'Red/White' },
@@ -135,27 +186,6 @@ function drawRoundedRect(x, y, w, h, r) {
   ctx.closePath();
 }
 
-function drawCenteredLines(ctx, rect) {
-  const lh = 1.2;
-  const lines = state.lines
-    .map((l) => ({ text: (l.text || '').trim(), pt: l.pt }))
-    .filter((l) => l.text);
-  if (!lines.length) return;
-  const pxSizes = lines.map((l) => l.pt * (PPI / 72));
-  const total = pxSizes.reduce((a, p) => a + p * lh, 0);
-  let y = rect.y + rect.h / 2 - total / 2;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = state.color.fg;
-  lines.forEach((l, i) => {
-    const px = pxSizes[i];
-    ctx.font = `${px}px ${state.font}`;
-    y += (px * lh) / 2;
-    ctx.fillText(l.text, rect.x + rect.w / 2, y);
-    y += (px * lh) / 2;
-  });
-}
-
 function render() {
   clampInputs();
   const canvasEl = document.getElementById('preview');
@@ -202,7 +232,18 @@ function render() {
   drawRoundedRect(plateX, plateY, plateW, plateH, radius);
   ctx.fill();
 
-  drawCenteredLines(ctx, { x: plateX, y: plateY, w: plateW, h: plateH });
+  const lines = (state.lines || []).map((l) => (l.text || '').trim()).filter(Boolean);
+  const sizesPt = (state.lines || []).map((l) => Number(l.pt ?? l.sizePt ?? 18));
+  const family = state.font || state.fontFamily || 'Calibri';
+  const fg = (state.color && state.color.fg) || '#ffffff';
+
+  drawTextLines(ctx, lines, plateX, plateY, plateW, plateH, {
+    family,
+    sizesPt,
+    fg,
+    innerPad: 12,
+    lineGap: 0.22
+  });
 }
 
 const previewWrapEl = document.getElementById('previewWrap');
