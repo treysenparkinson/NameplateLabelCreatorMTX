@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="layout">
+  <main id="appShell" class="layout">
     <section class="panel preview-panel">
       <h1>Nameplate Label Creator</h1>
       <canvas id="preview" width="900" height="560" aria-label="Nameplate preview"></canvas>
@@ -40,8 +40,34 @@
         <button id="addLine" type="button" class="btn btn-secondary" style="margin-top:8px">+ Add line</button>
       </div>
 
-      <h3>Color Palette</h3>
-      <div class="palette" id="colorOptions"></div>
+      <div class="field-group">
+        <label class="field-label">Color Palette</label>
+        <div class="chip-group" id="colorsGroup">
+          <input type="radio" id="c_gw" name="color" value="Green/White" checked>
+          <label class="chip" for="c_gw">Green/White</label>
+
+          <input type="radio" id="c_rw" name="color" value="Red/White">
+          <label class="chip" for="c_rw">Red/White</label>
+
+          <input type="radio" id="c_yb" name="color" value="Yellow/Black">
+          <label class="chip" for="c_yb">Yellow/Black</label>
+
+          <input type="radio" id="c_bw" name="color" value="Blue/White">
+          <label class="chip" for="c_bw">Blue/White</label>
+
+          <input type="radio" id="c_kW" name="color" value="Black/White">
+          <label class="chip" for="c_kW">Black/White</label>
+
+          <input type="radio" id="c_Wk" name="color" value="White/Black">
+          <label class="chip" for="c_Wk">White/Black</label>
+
+          <input type="radio" id="c_ob" name="color" value="Orange/Black">
+          <label class="chip" for="c_ob">Orange/Black</label>
+
+          <input type="radio" id="c_gb" name="color" value="Gray/Black">
+          <label class="chip" for="c_gb">Gray/Black</label>
+        </div>
+      </div>
 
       <h3>Corners</h3>
       <div class="field-group">
@@ -54,7 +80,7 @@
         </div>
       </div>
 
-      <div class="field">
+      <div class="field field-group">
         <label for="fontSelect">Font</label>
         <select id="fontSelect" class="input">
           <option value="Calibri, Arial, Helvetica, sans-serif" selected>Calibri</option>

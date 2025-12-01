@@ -1,22 +1,22 @@
 const PPI = 96;
 const LS_KEY = 'ms_nameplate_saved';
 
-const colorOptions = [
-  { name: 'Green/White', bg: '#008000', fg: '#ffffff' },
-  { name: 'Red/White', bg: '#cc0000', fg: '#ffffff' },
-  { name: 'Yellow/Black', bg: '#ffd500', fg: '#000000' },
-  { name: 'Blue/White', bg: '#0057d9', fg: '#ffffff' },
-  { name: 'Black/White', bg: '#000000', fg: '#ffffff' },
-  { name: 'White/Black', bg: '#ffffff', fg: '#000000' },
-  { name: 'Orange/Black', bg: '#ff7a00', fg: '#000000' },
-  { name: 'Gray/Black', bg: '#808080', fg: '#000000' }
-];
+const COLOR_MAP = {
+  'Green/White': { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
+  'Red/White': { bg: '#cc0000', fg: '#ffffff', name: 'Red/White' },
+  'Yellow/Black': { bg: '#ffd500', fg: '#000000', name: 'Yellow/Black' },
+  'Blue/White': { bg: '#0057d9', fg: '#ffffff', name: 'Blue/White' },
+  'Black/White': { bg: '#000000', fg: '#ffffff', name: 'Black/White' },
+  'White/Black': { bg: '#ffffff', fg: '#000000', name: 'White/Black' },
+  'Orange/Black': { bg: '#ff7a00', fg: '#000000', name: 'Orange/Black' },
+  'Gray/Black': { bg: '#808080', fg: '#000000', name: 'Gray/Black' }
+};
 
 let state = {
   heightIn: 1.5,
   widthIn: 5.0,
   qty: 1,
-  color: { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
+  color: COLOR_MAP['Green/White'],
   corners: 'squared',
   font: 'Calibri, Arial, Helvetica, sans-serif',
   lines: [{ text: '', pt: 22 }]
@@ -30,6 +30,7 @@ const linesList = document.getElementById('linesList');
 const addLineBtn = document.getElementById('addLine');
 const fontSelect = document.getElementById('fontSelect');
 const cornersGroup = document.getElementById('cornersGroup');
+const colorsGroup = document.getElementById('colorsGroup');
 const MIN_LINES = 1;
 const MAX_LINES = 6;
 
@@ -52,33 +53,16 @@ if (cornersGroup) {
   });
 }
 
-function createColorPalette() {
-  const container = document.getElementById('colorOptions');
-  container.innerHTML = '';
-  colorOptions.forEach((opt, idx) => {
-    const id = `color-${idx}`;
-    const label = document.createElement('label');
-    const input = document.createElement('input');
-    input.type = 'radio';
-    input.name = 'color';
-    input.value = opt.name;
-    input.id = id;
-    if (state.color.name === opt.name) input.checked = true;
-    input.addEventListener('change', () => {
-      state.color = { ...opt };
+if (colorsGroup) {
+  const inputs = colorsGroup.querySelectorAll('input[name="color"]');
+  inputs.forEach((i) => {
+    i.checked = i.value === state.color.name;
+  });
+  inputs.forEach((i) => {
+    i.addEventListener('change', () => {
+      state.color = COLOR_MAP[i.value];
       render();
     });
-
-    const swatch = document.createElement('span');
-    swatch.className = 'color-swatch';
-    swatch.style.background = opt.bg;
-    swatch.title = `${opt.name}`;
-    swatch.style.color = opt.fg;
-
-    label.appendChild(input);
-    label.appendChild(swatch);
-    label.appendChild(document.createTextNode(opt.name));
-    container.appendChild(label);
   });
 }
 
@@ -308,7 +292,6 @@ function setupButtons() {
 }
 
 function init() {
-  createColorPalette();
   setupControls();
   renderLinesControls();
   setupButtons();
