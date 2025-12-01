@@ -206,4 +206,21 @@ button:hover {
   background: #f1f6ff;
   box-shadow: 0 0 0 2px rgba(46, 110, 247, 0.12) inset;
 }
+
+#appShell {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.2fr) minmax(620px, 1.9fr) minmax(380px, 1fr);
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
 }
+
+.panel, .card { padding: 24px; }
+
+.field-group { margin: 18px 0; }
+.field-group .field-label { display: block; margin-bottom: 8px; font-weight: 600; }
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-group input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.chip { padding: 8px 12px; border: 1px solid #d0d5dd; border-radius: 10px; background: #fff; cursor: pointer; user-select: none; }
+.chip-group input[type="radio"]:checked + .chip { border-color: #2e6ef7; color: #2e6ef7; background: #f1f6ff; box-shadow: 0 0 0 2px rgba(46,110,247,.12) inset; }
