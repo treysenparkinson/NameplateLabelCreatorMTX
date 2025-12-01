@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nameplate Label Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -31,6 +34,12 @@
         </div>
       </div>
 
+      <div class="field-group">
+        <label class="field-label">Text Lines</label>
+        <div id="linesList" class="lines-list"></div>
+        <button id="addLine" type="button" class="btn btn-secondary" style="margin-top:8px">+ Add line</button>
+      </div>
+
       <h3>Color Palette</h3>
       <div class="palette" id="colorOptions"></div>
 
@@ -43,30 +52,8 @@
       <div class="field">
         <label for="fontSelect">Font</label>
         <select id="fontSelect">
-          <option value="Inter, system-ui, Arial, Helvetica, sans-serif">Inter/System</option>
-          <option value="Calibri, Arial, Helvetica, sans-serif">Calibri</option>
-          <option value="Arial, Helvetica, sans-serif">Arial</option>
-          <option value="Helvetica, Arial, sans-serif">Helvetica</option>
-          <option value="Roboto, Arial, Helvetica, sans-serif">Roboto</option>
+          <option value="Montserrat, system-ui, Arial, Helvetica, sans-serif">Montserrat</option>
         </select>
-      </div>
-
-      <div class="lines">
-        <div class="line-row">
-          <label for="l1">Line 1</label>
-          <input id="l1" type="text" />
-          <select id="l1pt"></select>
-        </div>
-        <div class="line-row">
-          <label for="l2">Line 2</label>
-          <input id="l2" type="text" />
-          <select id="l2pt"></select>
-        </div>
-        <div class="line-row">
-          <label for="l3">Line 3</label>
-          <input id="l3" type="text" />
-          <select id="l3pt"></select>
-        </div>
       </div>
     </section>
 
