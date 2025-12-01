@@ -18,7 +18,7 @@ let state = {
   qty: 1,
   color: { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
   corners: 'rounded',
-  font: 'Montserrat, system-ui, Arial, Helvetica, sans-serif',
+  font: 'Calibri, Arial, Helvetica, sans-serif',
   lines: [{ text: '', pt: 22 }]
 };
 
@@ -28,8 +28,17 @@ const canvas = document.getElementById('preview');
 const ctx = canvas.getContext('2d');
 const linesList = document.getElementById('linesList');
 const addLineBtn = document.getElementById('addLine');
+const fontSelect = document.getElementById('fontSelect');
 const MIN_LINES = 1;
 const MAX_LINES = 6;
+
+if (fontSelect) {
+  fontSelect.value = state.font;
+  fontSelect.addEventListener('change', (e) => {
+    state.font = e.target.value;
+    render();
+  });
+}
 
 function createColorPalette() {
   const container = document.getElementById('colorOptions');
@@ -219,7 +228,6 @@ function setupControls() {
   document.getElementById('heightIn').value = state.heightIn.toFixed(2);
   document.getElementById('widthIn').value = state.widthIn.toFixed(2);
   document.getElementById('qty').value = state.qty;
-  document.getElementById('fontSelect').value = state.font;
 
   ['heightIn', 'widthIn'].forEach((id) => {
     document.getElementById(id).addEventListener('input', () => {
@@ -237,11 +245,6 @@ function setupControls() {
       state.corners = e.target.value;
       render();
     });
-  });
-
-  document.getElementById('fontSelect').addEventListener('change', (e) => {
-    state.font = e.target.value;
-    render();
   });
 }
 
