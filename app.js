@@ -1,5 +1,7 @@
 const PPI = 96;
 const LS_KEY = 'ms_nameplate_saved';
+const FONT_SIZES_PT = [8, 12, 14, 16, 18, 20, 22, 24, 28, 32];
+const DEFAULT_FONT_PT = 12;
 
 const PT_TO_PX = 96 / 72; // 1pt at 96dpi
 
@@ -132,27 +134,49 @@ function renderLinesControls() {
   state.lines.forEach((ln, idx) => {
     const row = document.createElement('div');
     row.className = 'line-row';
-    row.innerHTML = `
-      <input class="line-text" type="text" placeholder="Line ${idx + 1}" value="${ln.text}">
-      <select class="line-pt">${[28, 24, 22, 20, 18, 16, 14, 12]
-        .map((v) => `<option value="${v}" ${v === ln.pt ? 'selected' : ''}>${v} pt</option>`) 
-        .join('')}</select>
-      <button class="line-remove btn btn-light" type="button" ${state.lines.length <= MIN_LINES ? 'disabled' : ''}>Remove</button>`;
-    row.querySelector('.line-text').addEventListener('input', (e) => {
+    const textInput = document.createElement('input');
+    textInput.className = 'line-text';
+    textInput.type = 'text';
+    textInput.placeholder = `Line ${idx + 1}`;
+    textInput.value = ln.text;
+
+    const sizeSelect = document.createElement('select');
+    sizeSelect.className = 'line-pt';
+    FONT_SIZES_PT.forEach((pt) => {
+      const opt = document.createElement('option');
+      opt.value = String(pt);
+      opt.textContent = `${pt} pt`;
+      sizeSelect.appendChild(opt);
+    });
+    sizeSelect.value = String(ln.pt ?? ln.sizePt ?? DEFAULT_FONT_PT);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'line-remove btn btn-light';
+    removeBtn.type = 'button';
+    removeBtn.textContent = 'Remove';
+    removeBtn.disabled = state.lines.length <= MIN_LINES;
+
+    textInput.addEventListener('input', (e) => {
       ln.text = e.target.value;
       render();
     });
-    row.querySelector('.line-pt').addEventListener('change', (e) => {
+
+    sizeSelect.addEventListener('change', (e) => {
       ln.pt = Number(e.target.value);
       render();
     });
-    row.querySelector('.line-remove').addEventListener('click', () => {
+
+    removeBtn.addEventListener('click', () => {
       if (state.lines.length > MIN_LINES) {
         state.lines.splice(idx, 1);
         renderLinesControls();
         render();
       }
     });
+
+    row.appendChild(textInput);
+    row.appendChild(sizeSelect);
+    row.appendChild(removeBtn);
     linesList.appendChild(row);
   });
 }
