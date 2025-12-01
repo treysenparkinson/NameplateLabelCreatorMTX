@@ -29,6 +29,10 @@ function drawTextLines(ctx, lines, plateX, plateY, plateW, plateH, opts) {
   else ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+  if (typeof ctx.getTransform === 'function') {
+    console.debug('text transform', ctx.getTransform());
+  }
+
   ctx.fillStyle = fg || '#fff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -199,22 +203,20 @@ function render() {
 
   const dpr = window.devicePixelRatio || 1;
 
-  const wIn = Math.max(1, Number(state.widthIn || state.width || 0));
-  const hIn = Math.max(1, Number(state.heightIn || state.height || 0));
+  const wIn = Math.max(0.1, Number(state.widthIn || state.width || 0));
+  const hIn = Math.max(0.1, Number(state.heightIn || state.height || 0));
 
-  const BASE_ZOOM = 1.3;
   const PAD = 48;
+  const plateWpx = wIn * PPI;
+  const plateHpx = hIn * PPI;
 
-  let desiredPlateW = wIn * PPI * BASE_ZOOM;
-  let desiredPlateH = hIn * PPI * BASE_ZOOM;
+  const availW = Math.max(360, wrap.clientWidth || canvasEl.parentElement.clientWidth || window.innerWidth);
+  const previewInnerW = Math.max(200, availW - PAD * 2);
+  const previewInnerH = Math.max(260, previewInnerW * 0.7);
 
-  const availW = Math.max(320, wrap.clientWidth || canvasEl.parentElement.clientWidth || window.innerWidth);
-
-  const fitScale = Math.min(1, (availW - PAD * 2) / desiredPlateW);
-  const zoom = Math.max(0.85, BASE_ZOOM * fitScale);
-
-  const plateW = wIn * PPI * zoom;
-  const plateH = hIn * PPI * zoom;
+  const scale = Math.min(previewInnerW / plateWpx, previewInnerH / plateHpx);
+  const plateW = plateWpx * scale;
+  const plateH = plateHpx * scale;
 
   const cssW = plateW + PAD * 2;
   const cssH = plateH + PAD * 2;
