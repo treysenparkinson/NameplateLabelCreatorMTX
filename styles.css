@@ -167,7 +167,7 @@ button:hover {
   margin-bottom: 1rem;
 }
 
-.saved-card {
+.saved-entry {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.75rem;
@@ -178,13 +178,13 @@ button:hover {
   background: #fafafa;
 }
 
-.saved-card .meta {
+.saved-entry .meta {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.saved-card .meta .muted {
+.saved-entry .meta .muted {
   color: var(--muted);
   font-size: 0.9rem;
 }
@@ -297,6 +297,37 @@ canvas { transform: none !important; }
 .preview-card .wrapper,
 .preview-card .inner {
   max-width: none !important;
+}
+
+/* Saved Templates layout */
+.saved-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.saved-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.saved-sub {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.saved-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.saved-ref input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .page, .wrapper, .container, main {
