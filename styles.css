@@ -20,17 +20,15 @@ body {
   padding: 1.5rem;
   background: var(--bg);
   color: var(--text);
+  overflow-x: hidden;
 }
 
 .page {
-  max-width: 1440px;         /* widen overall canvas so there is no dead space */
+  max-width: 1760px;         /* wider canvas so all three columns fit */
   margin: 0 auto;
-  padding: 24px 32px;        /* slightly wider gutters so UI breathes */
+  padding: 24px 32px;        /* modest outer gutters */
   box-sizing: border-box;
 }
-
-/* Remove any global margin that could create extra white strip on right */
-body { margin: 0; }
 
 h1, h2, h3 {
   margin: 0 0 0.5rem;
@@ -196,24 +194,36 @@ button:hover {
 .card { padding: 20px 24px; }
 
 
-.app-grid,
-#appShell {
+.app-grid.three-col,
+#appShell.three-col {
   display: grid;
-  /* Large left preview, fixed/right controls. Prevents unused right space. */
-  grid-template-columns: minmax(780px, 1fr) 440px;
+  grid-template-columns:
+    minmax(780px, 1fr)
+    minmax(420px, 440px)
+    360px;
   gap: 28px;
   align-items: start;
 }
 
-@media (max-width: 1140px) {
-  .app-grid,
-  #appShell {
+@media (max-width: 1480px) {
+  .app-grid.three-col,
+  #appShell.three-col {
+    grid-template-columns: minmax(700px, 1fr) 420px 340px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .app-grid.three-col,
+  #appShell.three-col {
     grid-template-columns: 1fr;
   }
+  .controls-card { order: 2; }
+  .saved-card { order: 3; }
 }
 
 .preview-card,
 .controls-card,
+.saved-card,
 .col--preview {
   width: 100%;
   max-width: none;
