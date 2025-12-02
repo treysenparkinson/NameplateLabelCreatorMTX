@@ -318,7 +318,7 @@ function renderSavedList() {
 
   saved.forEach((item, idx) => {
     const card = document.createElement('div');
-    card.className = 'saved-card';
+    card.className = 'saved-entry';
 
     const meta = document.createElement('div');
     meta.className = 'meta';
@@ -383,7 +383,7 @@ function setupButtons() {
   });
 
   document.getElementById('submitAll').addEventListener('click', async () => {
-    const referenceId = document.getElementById('referenceId').value.trim();
+    const referenceId = document.getElementById('refId').value.trim();
     if (!referenceId) {
       alert('Reference ID is required.');
       return;

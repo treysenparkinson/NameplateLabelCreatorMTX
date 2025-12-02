@@ -97,14 +97,18 @@
       </aside>
 
       <aside class="panel card saved-card">
-        <h2>Saved Templates</h2>
+        <header class="saved-header">
+          <h2>Saved Templates</h2>
+          <p class="saved-sub">No templates saved yet.</p>
+        </header>
         <div id="savedList" class="saved-list"></div>
 
-        <div class="field">
-          <label for="referenceId">Reference ID</label>
-          <input id="referenceId" type="text" required />
+        <div class="saved-ref">
+          <label for="refId">Reference ID</label>
+          <input id="refId" type="text" class="input" placeholder="e.g., ACME-PO-1234" />
         </div>
-        <button id="submitAll" class="primary">Submit Label!</button>
+
+        <button id="submitAll" class="primary submit-label">Submit Label!</button>
       </aside>
     </div>
   </div>
