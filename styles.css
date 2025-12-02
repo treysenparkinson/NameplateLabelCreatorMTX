@@ -22,6 +22,13 @@ body {
   color: var(--text);
 }
 
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
 h1, h2, h3 {
   margin: 0 0 0.5rem;
 }
@@ -185,39 +192,24 @@ button:hover {
 
 .card { padding: 24px; }
 
-.app-container {
-  max-width: 1600px;
-  margin: 0 auto;
-}
 
 .app-grid,
 #appShell {
   display: grid;
+  grid-template-columns: minmax(720px, 2fr) minmax(360px, 1fr);
   gap: 24px;
+  align-items: start;
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1200px) {
   .app-grid,
   #appShell {
     grid-template-columns: 1fr;
   }
 }
 
-@media (min-width: 1200px) {
-  .app-grid,
-  #appShell {
-    grid-template-columns: 900px 560px 420px;
-    align-items: start;
-  }
-}
-
-@media (min-width: 1536px) {
-  .app-grid,
-  #appShell {
-    grid-template-columns: 1000px 600px 440px;
-  }
-}
-
+.preview-card,
+.controls-card,
 .col--preview {
   width: 100%;
 }
@@ -229,20 +221,6 @@ button:hover {
 .col--preview #preview {
   width: 100%;
   max-width: 100%;
-}
-
-canvas#labelCanvas,
-.label-canvas,
-.label-box,
-#preview {
-  width: auto;
-  height: auto;
-  image-rendering: crisp-edges;
-  display: block;
-}
-
-.col--preview .card {
-  padding: 24px;
 }
 
 .chip-group input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
@@ -268,10 +246,11 @@ canvas { transform: none !important; }
 .field-group .field-label{ display:block;margin-bottom:8px;font-weight:600; }
 
 /* The viewport where the preview is displayed */
+
 .preview-viewport {
   width: 100%;
-  max-width: 100%;
-  max-height: 320px;
+  max-width: none;
+  max-height: 360px;
   padding: 16px;
   overflow: hidden;
   background: #fff;
@@ -279,9 +258,8 @@ canvas { transform: none !important; }
   box-sizing: border-box;
 }
 
-/* Give a touch more height on larger screens */
-@media (min-width: 1200px) {
-  .preview-viewport { max-height: 360px; }
+@media (max-width: 768px) {
+  .preview-viewport { max-height: 300px; }
 }
 
 /* We scale this inner box, not the canvas dimensions themselves */
@@ -296,4 +274,3 @@ canvas { transform: none !important; }
   width: auto;
   height: auto;
 }
-

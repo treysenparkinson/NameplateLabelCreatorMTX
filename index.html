@@ -10,9 +10,9 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container app-container">
+  <div class="page container app-container">
     <div id="appShell" class="app-grid">
-      <section class="panel card col col--preview preview-panel">
+      <section class="panel card col col--preview preview-panel preview-card">
         <h1>Nameplate Label Creator</h1>
         <div class="preview-viewport">
           <div class="preview-fit">
@@ -26,7 +26,7 @@
         <button id="saveTemplate" class="primary">Save Template</button>
       </section>
 
-      <section class="panel card col col--controls controls">
+      <aside class="panel card col col--controls controls controls-card">
         <h2>Size (inches)</h2>
         <div class="grid two-cols">
           <div class="field">
@@ -94,9 +94,7 @@
             <label class="chip" for="cornersSquared">Squared</label>
           </div>
         </div>
-      </section>
 
-      <section class="panel card col col--saved saved">
         <h2>Saved Templates</h2>
         <div id="savedList" class="saved-list"></div>
 
@@ -105,9 +103,9 @@
           <input id="referenceId" type="text" required />
         </div>
         <button id="submitAll" class="primary">Submit Label!</button>
-      </section>
+      </aside>
     </div>
-  </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
