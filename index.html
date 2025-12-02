@@ -10,97 +10,99 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main id="appShell" class="layout">
-    <section class="panel preview-panel">
-      <h1>Nameplate Label Creator</h1>
-      <div id="previewWrap"><canvas id="preview" aria-label="Nameplate preview"></canvas></div>
-      <div class="field">
-        <label for="qty">Qty:</label>
-        <input id="qty" type="number" min="1" value="1" />
-      </div>
-      <button id="saveTemplate" class="primary">Save Template</button>
-    </section>
-
-    <section class="panel controls">
-      <h2>Size (inches)</h2>
-      <div class="grid two-cols">
+  <main class="container app-container">
+    <div id="appShell" class="app-grid">
+      <section class="panel card col col--preview preview-panel">
+        <h1>Nameplate Label Creator</h1>
+        <div id="previewWrap"><canvas id="preview" aria-label="Nameplate preview"></canvas></div>
         <div class="field">
-          <label for="heightIn">Height</label>
-          <input id="heightIn" type="number" step="0.01" min="0.10" placeholder="1.50" />
+          <label for="qty">Qty:</label>
+          <input id="qty" type="number" min="1" value="1" />
         </div>
+        <button id="saveTemplate" class="primary">Save Template</button>
+      </section>
+
+      <section class="panel card col col--controls controls">
+        <h2>Size (inches)</h2>
+        <div class="grid two-cols">
+          <div class="field">
+            <label for="heightIn">Height</label>
+            <input id="heightIn" type="number" step="0.01" min="0.10" placeholder="1.50" />
+          </div>
+          <div class="field">
+            <label for="widthIn">Width</label>
+            <input id="widthIn" type="number" step="0.01" min="0.10" placeholder="5.00" />
+          </div>
+        </div>
+
+        <div class="field field-group">
+          <label for="fontSelect">Font</label>
+          <select id="fontSelect" class="input">
+            <option value="Calibri, Arial, Helvetica, sans-serif" selected>Calibri</option>
+            <option value="'Times New Roman', Times, serif">Times New Roman</option>
+            <option value="Arial, Helvetica, sans-serif">Arial</option>
+            <option value="Montserrat, system-ui, Arial, Helvetica, sans-serif">Montserrat</option>
+            <option value="Inter, system-ui, Arial, Helvetica, sans-serif">Inter / System</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Text Lines</label>
+          <div id="linesList" class="lines-list"></div>
+          <button id="addLine" type="button" class="btn btn-secondary" style="margin-top:8px">+ Add line</button>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Color Palette</label>
+          <div class="chip-group" id="colorsGroup">
+            <input type="radio" id="c_gw" name="color" value="Green/White" checked>
+            <label class="chip" for="c_gw">Green/White</label>
+
+            <input type="radio" id="c_rw" name="color" value="Red/White">
+            <label class="chip" for="c_rw">Red/White</label>
+
+            <input type="radio" id="c_yb" name="color" value="Yellow/Black">
+            <label class="chip" for="c_yb">Yellow/Black</label>
+
+            <input type="radio" id="c_bw" name="color" value="Blue/White">
+            <label class="chip" for="c_bw">Blue/White</label>
+
+            <input type="radio" id="c_kW" name="color" value="Black/White">
+            <label class="chip" for="c_kW">Black/White</label>
+
+            <input type="radio" id="c_Wk" name="color" value="White/Black">
+            <label class="chip" for="c_Wk">White/Black</label>
+
+            <input type="radio" id="c_ob" name="color" value="Orange/Black">
+            <label class="chip" for="c_ob">Orange/Black</label>
+
+            <input type="radio" id="c_gb" name="color" value="Gray/Black">
+            <label class="chip" for="c_gb">Gray/Black</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Corners</label>
+          <div class="chip-group" id="cornersGroup">
+            <input type="radio" id="cornersRounded" name="corners" value="rounded">
+            <label class="chip" for="cornersRounded">Rounded</label>
+            <input type="radio" id="cornersSquared" name="corners" value="squared" checked>
+            <label class="chip" for="cornersSquared">Squared</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel card col col--saved saved">
+        <h2>Saved Templates</h2>
+        <div id="savedList" class="saved-list"></div>
+
         <div class="field">
-          <label for="widthIn">Width</label>
-          <input id="widthIn" type="number" step="0.01" min="0.10" placeholder="5.00" />
+          <label for="referenceId">Reference ID</label>
+          <input id="referenceId" type="text" required />
         </div>
-      </div>
-
-      <div class="field field-group">
-        <label for="fontSelect">Font</label>
-        <select id="fontSelect" class="input">
-          <option value="Calibri, Arial, Helvetica, sans-serif" selected>Calibri</option>
-          <option value="'Times New Roman', Times, serif">Times New Roman</option>
-          <option value="Arial, Helvetica, sans-serif">Arial</option>
-          <option value="Montserrat, system-ui, Arial, Helvetica, sans-serif">Montserrat</option>
-          <option value="Inter, system-ui, Arial, Helvetica, sans-serif">Inter / System</option>
-        </select>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Text Lines</label>
-        <div id="linesList" class="lines-list"></div>
-        <button id="addLine" type="button" class="btn btn-secondary" style="margin-top:8px">+ Add line</button>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Color Palette</label>
-        <div class="chip-group" id="colorsGroup">
-          <input type="radio" id="c_gw" name="color" value="Green/White" checked>
-          <label class="chip" for="c_gw">Green/White</label>
-
-          <input type="radio" id="c_rw" name="color" value="Red/White">
-          <label class="chip" for="c_rw">Red/White</label>
-
-          <input type="radio" id="c_yb" name="color" value="Yellow/Black">
-          <label class="chip" for="c_yb">Yellow/Black</label>
-
-          <input type="radio" id="c_bw" name="color" value="Blue/White">
-          <label class="chip" for="c_bw">Blue/White</label>
-
-          <input type="radio" id="c_kW" name="color" value="Black/White">
-          <label class="chip" for="c_kW">Black/White</label>
-
-          <input type="radio" id="c_Wk" name="color" value="White/Black">
-          <label class="chip" for="c_Wk">White/Black</label>
-
-          <input type="radio" id="c_ob" name="color" value="Orange/Black">
-          <label class="chip" for="c_ob">Orange/Black</label>
-
-          <input type="radio" id="c_gb" name="color" value="Gray/Black">
-          <label class="chip" for="c_gb">Gray/Black</label>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Corners</label>
-        <div class="chip-group" id="cornersGroup">
-          <input type="radio" id="cornersRounded" name="corners" value="rounded">
-          <label class="chip" for="cornersRounded">Rounded</label>
-          <input type="radio" id="cornersSquared" name="corners" value="squared" checked>
-          <label class="chip" for="cornersSquared">Squared</label>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel saved">
-      <h2>Saved Templates</h2>
-      <div id="savedList" class="saved-list"></div>
-
-      <div class="field">
-        <label for="referenceId">Reference ID</label>
-        <input id="referenceId" type="text" required />
-      </div>
-      <button id="submitAll" class="primary">Submit Label!</button>
-    </section>
+        <button id="submitAll" class="primary">Submit Label!</button>
+      </section>
+    </div>
   </main>
 
   <script src="app.js"></script>
