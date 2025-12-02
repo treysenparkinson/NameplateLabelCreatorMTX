@@ -63,6 +63,26 @@ function drawTextLines(ctx, lines, plateX, plateY, plateW, plateH, opts) {
   ctx.restore();
 }
 
+function scalePreviewToFit() {
+  const stage = document.querySelector('.preview-viewport');
+  const fitBox = document.querySelector('.preview-fit');
+  const canvasEl = document.getElementById('labelCanvas');
+  if (!stage || !fitBox || !canvasEl) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const naturalW = (canvasEl.width || 1) / dpr;
+  const naturalH = (canvasEl.height || 1) / dpr;
+
+  const availW = Math.max(1, stage.clientWidth - 2);
+  const availH = Math.max(1, stage.clientHeight - 2);
+
+  const scale = Math.min(availW / naturalW, availH / naturalH, 1);
+
+  fitBox.style.transform = `scale(${scale})`;
+  fitBox.style.width = `${naturalW}px`;
+  fitBox.style.height = `${naturalH}px`;
+}
+
 const COLOR_MAP = {
   'Green/White': { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
   'Red/White': { bg: '#cc0000', fg: '#ffffff', name: 'Red/White' },
@@ -86,8 +106,7 @@ let state = {
 
 let saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
 
-const canvas = document.getElementById('preview');
-let ctx = canvas ? canvas.getContext('2d') : null;
+let ctx = null;
 const linesList = document.getElementById('linesList');
 const addLineBtn = document.getElementById('addLine');
 const fontSelect = document.getElementById('fontSelect');
@@ -221,9 +240,8 @@ function drawRoundedRect(x, y, w, h, r) {
 
 function render() {
   clampInputs();
-  const canvasEl = document.getElementById('preview');
-  const wrap = document.getElementById('previewWrap');
-  if (!canvasEl || !wrap) return;
+  const canvasEl = document.getElementById('labelCanvas');
+  if (!canvasEl) return;
 
   const dpr = window.devicePixelRatio || 1;
 
@@ -231,22 +249,14 @@ function render() {
   const hIn = Math.max(0.1, Number(state.heightIn || state.height || 0));
 
   const PAD = 48;
-  const plateWpx = wIn * PPI;
-  const plateHpx = hIn * PPI;
-
-  const availW = Math.max(360, wrap.clientWidth || canvasEl.parentElement.clientWidth || window.innerWidth);
-  const previewInnerW = Math.max(200, availW - PAD * 2);
-  const previewInnerH = Math.max(260, previewInnerW * 0.7);
-
-  const scale = Math.min(previewInnerW / plateWpx, previewInnerH / plateHpx);
-  const plateW = plateWpx * scale;
-  const plateH = plateHpx * scale;
+  const plateW = wIn * PPI;
+  const plateH = hIn * PPI;
 
   const cssW = plateW + PAD * 2;
   const cssH = plateH + PAD * 2;
 
-  canvasEl.style.width = cssW + 'px';
-  canvasEl.style.height = cssH + 'px';
+  canvasEl.style.width = `${cssW}px`;
+  canvasEl.style.height = `${cssH}px`;
 
   canvasEl.width = Math.round(cssW * dpr);
   canvasEl.height = Math.round(cssH * dpr);
@@ -254,8 +264,8 @@ function render() {
   ctx = canvasEl.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const plateX = (cssW - plateW) / 2;
-  const plateY = (cssH - plateH) / 2;
+  const plateX = PAD;
+  const plateY = PAD;
   const radius = state.corners === 'rounded' ? Math.min(plateW, plateH) * 0.06 : 0;
 
   ctx.clearRect(0, 0, cssW, cssH);
@@ -278,13 +288,21 @@ function render() {
     lineGap: 0.22,
     dpr
   });
+
+  scalePreviewToFit();
 }
 
-const previewWrapEl = document.getElementById('previewWrap');
+const previewWrapEl = document.querySelector('.preview-viewport');
 if (typeof ResizeObserver !== 'undefined' && previewWrapEl) {
   const ro = new ResizeObserver(() => render());
   ro.observe(previewWrapEl);
 }
+
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(scalePreviewToFit, 100);
+});
 
 function saveToStorage() {
   localStorage.setItem(LS_KEY, JSON.stringify(saved));

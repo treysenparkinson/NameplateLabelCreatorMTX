@@ -14,7 +14,11 @@
     <div id="appShell" class="app-grid">
       <section class="panel card col col--preview preview-panel">
         <h1>Nameplate Label Creator</h1>
-        <div id="previewWrap"><canvas id="preview" aria-label="Nameplate preview"></canvas></div>
+        <div class="preview-viewport">
+          <div class="preview-fit">
+            <canvas id="labelCanvas" aria-label="Nameplate preview"></canvas>
+          </div>
+        </div>
         <div class="field">
           <label for="qty">Qty:</label>
           <input id="qty" type="number" min="1" value="1" />

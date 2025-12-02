@@ -43,12 +43,13 @@ main.layout, .grid-3, .layout-3 {
 }
 
 .preview-panel canvas {
-  width: 100%;
+  width: auto;
   height: auto;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem;
+  display: block;
 }
 
 .field {
@@ -234,9 +235,10 @@ canvas#labelCanvas,
 .label-canvas,
 .label-box,
 #preview {
-  width: 100%;
+  width: auto;
   height: auto;
   image-rendering: crisp-edges;
+  display: block;
 }
 
 .col--preview .card {
@@ -260,21 +262,38 @@ canvas#labelCanvas,
   box-shadow: 0 0 0 2px rgba(46, 110, 247, 0.12) inset;
 }
 
-#previewWrap{
-  width:100%;
-  overflow:visible;
-  padding:0;
-}
-
-#preview{
-  width:100%;
-  height:auto;
-  display:block;
-  max-width:100%;
-}
-
 canvas { transform: none !important; }
 
 .field-group{ margin:18px 0; }
 .field-group .field-label{ display:block;margin-bottom:8px;font-weight:600; }
+
+/* The viewport where the preview is displayed */
+.preview-viewport {
+  width: 100%;
+  max-width: 100%;
+  max-height: 320px;
+  padding: 16px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* Give a touch more height on larger screens */
+@media (min-width: 1200px) {
+  .preview-viewport { max-height: 360px; }
+}
+
+/* We scale this inner box, not the canvas dimensions themselves */
+.preview-fit {
+  display: inline-block;
+  transform-origin: 0 0;
+}
+
+/* Keep the canvas at its natural pixel size; we scale via transform */
+#labelCanvas {
+  display: block;
+  width: auto;
+  height: auto;
+}
 
