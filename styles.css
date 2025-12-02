@@ -26,7 +26,7 @@ h1, h2, h3 {
   margin: 0 0 0.5rem;
 }
 
-main.layout, .app-grid, .grid-3, .layout-3 {
+main.layout, .grid-3, .layout-3 {
   display: grid;
   max-width: 1500px;
   margin: 0 auto;
@@ -184,6 +184,65 @@ button:hover {
 
 .card { padding: 24px; }
 
+.app-container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.app-grid,
+#appShell {
+  display: grid;
+  gap: 24px;
+}
+
+@media (max-width: 1199px) {
+  .app-grid,
+  #appShell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-grid,
+  #appShell {
+    grid-template-columns: 900px 560px 420px;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1536px) {
+  .app-grid,
+  #appShell {
+    grid-template-columns: 1000px 600px 440px;
+  }
+}
+
+.col--preview {
+  width: 100%;
+}
+
+.col--preview .preview-card,
+.col--preview .preview-viewport,
+.col--preview .label-preview,
+.col--preview #previewWrap,
+.col--preview #preview {
+  width: 100%;
+  max-width: 100%;
+}
+
+canvas#labelCanvas,
+.label-canvas,
+.label-box,
+#preview {
+  width: 100%;
+  height: auto;
+  image-rendering: crisp-edges;
+}
+
+.col--preview .card {
+  padding: 24px;
+}
+
 .chip-group input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
 .chip-group { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip-group .chip {
@@ -200,29 +259,6 @@ button:hover {
   background: #f1f6ff;
   box-shadow: 0 0 0 2px rgba(46, 110, 247, 0.12) inset;
 }
-
-#appShell{
-  display:grid;
-  gap:24px;
-  width:100%;
-  max-width:1680px;
-  margin:0 auto;
-  padding:0 16px;
-  grid-template-columns:
-    minmax(640px,1.9fr) minmax(600px,1.5fr) minmax(420px,1fr);
-}
-@media (max-width:1400px){
-  #appShell{
-    grid-template-columns:
-      minmax(380px,1fr) minmax(520px,1.4fr) minmax(360px,1fr);
-  }
-}
-@media (max-width:1100px){
-  #appShell{ grid-template-columns:1fr; }
-}
-/* prevent clipping */
-.panel,.card{ overflow:visible; padding:24px; }
-.saved-panel{ overflow:visible; }
 
 #previewWrap{
   width:100%;
@@ -242,7 +278,3 @@ canvas { transform: none !important; }
 .field-group{ margin:18px 0; }
 .field-group .field-label{ display:block;margin-bottom:8px;font-weight:600; }
 
-.chip-group{display:flex;flex-wrap:wrap;gap:8px}
-.chip-group input[type="radio"]{position:absolute;opacity:0;pointer-events:none}
-.chip{padding:8px 12px;border:1px solid #d0d5dd;border-radius:10px;background:#fff;cursor:pointer;user-select:none}
-.chip-group input[type="radio"]:checked + .chip{border-color:#2e6ef7;color:#2e6ef7;background:#f1f6ff;box-shadow:0 0 0 2px rgba(46,110,247,.12) inset}
