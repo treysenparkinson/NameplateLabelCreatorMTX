@@ -24,18 +24,15 @@ body {
 }
 
 .nlc-root {
-  /* Full-bleed trick */
   position: relative;
   left: 50%;
   right: 50%;
   margin-left: calc(-50vw);
   margin-right: calc(-50vw);
 
-  /* Take the whole viewport width with comfortable gutters */
   width: 100vw;
   max-width: 100vw;
-  padding-left: 32px;
-  padding-right: 32px;
+  padding-inline: clamp(16px, 4vw, 40px);
   box-sizing: border-box;
 }
 
@@ -207,30 +204,20 @@ button:hover {
 .card { padding: 20px 24px; }
 
 
-.nlc-grid.three-col,
-#appShell.three-col {
+.nlc-grid {
   display: grid;
-  grid-template-columns:
-    minmax(760px, 1fr)
-    minmax(520px, 560px)
-    minmax(360px, 420px);
   gap: 24px;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    clamp(480px, 36vw, 560px)
+    clamp(320px, 26vw, 420px);
+
   align-items: start;
 }
 
-@media (max-width: 1500px) {
-  .nlc-grid.three-col,
-  #appShell.three-col {
-    grid-template-columns:
-      minmax(700px, 1fr)
-      minmax(500px, 540px)
-      360px;
-  }
-}
-
-@media (max-width: 1220px) {
-  .nlc-grid.three-col,
-  #appShell.three-col {
+@media (max-width: 1200px) {
+  .nlc-grid {
     grid-template-columns: 1fr;
   }
   .controls-card { order: 2; }
