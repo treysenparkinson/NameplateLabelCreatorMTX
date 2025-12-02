@@ -24,11 +24,13 @@ body {
 }
 
 .page {
-  max-width: 1760px;         /* wider canvas so all three columns fit */
+  max-width: 2040px;        /* wider canvas so all three columns fit */
   margin: 0 auto;
-  padding: 24px 32px;        /* modest outer gutters */
+  padding: 24px 40px;       /* modest outer gutters */
   box-sizing: border-box;
 }
+
+html, body { overflow-x: clip; }
 
 h1, h2, h3 {
   margin: 0 0 0.5rem;
@@ -198,17 +200,17 @@ button:hover {
 #appShell.three-col {
   display: grid;
   grid-template-columns:
-    minmax(780px, 1fr)
-    minmax(420px, 440px)
-    360px;
-  gap: 28px;
+    minmax(820px, 1fr)
+    minmax(500px, 540px)
+    420px;
+  gap: 24px;
   align-items: start;
 }
 
 @media (max-width: 1480px) {
   .app-grid.three-col,
   #appShell.three-col {
-    grid-template-columns: minmax(700px, 1fr) 420px 340px;
+    grid-template-columns: minmax(760px, 1fr) 500px 380px;
   }
 }
 
@@ -295,4 +297,3 @@ canvas { transform: none !important; }
 .preview-card .inner {
   max-width: none !important;
 }
-
