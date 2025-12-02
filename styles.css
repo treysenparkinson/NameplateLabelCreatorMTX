@@ -7,6 +7,8 @@
   --text: #1f2933;
   --muted: #6b7280;
   --top-space: clamp(24px, 4vw, 64px);
+  /* bottom = half of top (with safe min/max) */
+  --bottom-space: clamp(12px, 2vw, 32px);
   font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -30,6 +32,8 @@ body {
 .creator-grid,
 #nlc-root {
   margin-top: var(--top-space);
+  padding-bottom: var(--bottom-space) !important;
+  margin-bottom: 0 !important;
 }
 
 @media (max-width: 640px) {
@@ -40,6 +44,13 @@ body {
   #nlc-root {
     margin-top: 20px;
   }
+}
+
+main,
+.page,
+.page-content,
+.site-content {
+  margin-bottom: 0 !important;
 }
 
 .nlc-root {
