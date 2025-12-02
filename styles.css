@@ -23,11 +23,14 @@ body {
 }
 
 .page {
-  max-width: 1280px;
+  max-width: 1440px;         /* widen overall canvas so there is no dead space */
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px 32px;        /* slightly wider gutters so UI breathes */
   box-sizing: border-box;
 }
+
+/* Remove any global margin that could create extra white strip on right */
+body { margin: 0; }
 
 h1, h2, h3 {
   margin: 0 0 0.5rem;
@@ -190,18 +193,19 @@ button:hover {
 .line-row { display: grid; grid-template-columns: 1fr 110px 90px; gap: 8px; align-items: center; }
 .line-text, .line-pt, .line-remove { width: 100%; }
 
-.card { padding: 24px; }
+.card { padding: 20px 24px; }
 
 
 .app-grid,
 #appShell {
   display: grid;
-  grid-template-columns: minmax(720px, 2fr) minmax(360px, 1fr);
-  gap: 24px;
+  /* Large left preview, fixed/right controls. Prevents unused right space. */
+  grid-template-columns: minmax(780px, 1fr) 440px;
+  gap: 28px;
   align-items: start;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1140px) {
   .app-grid,
   #appShell {
     grid-template-columns: 1fr;
@@ -212,6 +216,7 @@ button:hover {
 .controls-card,
 .col--preview {
   width: 100%;
+  max-width: none;
 }
 
 .col--preview .preview-card,
@@ -249,12 +254,10 @@ canvas { transform: none !important; }
 
 .preview-viewport {
   width: 100%;
-  max-width: none;
-  max-height: 360px;
-  padding: 16px;
+  max-width: none;           /* let it grow to fill the left column */
+  max-height: 360px;         /* readable preview height */
+  padding: 12px 0;           /* slimmer to make more horizontal room */
   overflow: hidden;
-  background: #fff;
-  border-radius: 12px;
   box-sizing: border-box;
 }
 
@@ -274,3 +277,12 @@ canvas { transform: none !important; }
   width: auto;
   height: auto;
 }
+
+/* If you have rules like .container { max-width: 1100px } inside the creator,
+   remove or override them with max-width:none in this scope. */
+.preview-card .container,
+.preview-card .wrapper,
+.preview-card .inner {
+  max-width: none !important;
+}
+
