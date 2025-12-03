@@ -456,6 +456,15 @@ function renderSavedList() {
   });
 }
 
+function showSummaryPdfLink(url) {
+  const wrap = document.getElementById('summaryPdfWrap');
+  const link = document.getElementById('summaryPdfLink');
+  if (wrap && link && url) {
+    link.href = url;
+    wrap.hidden = false;
+  }
+}
+
 async function doSubmitLabel() {
   const referenceId = document.getElementById('refId').value.trim();
   if (!referenceId) {
@@ -477,10 +486,13 @@ async function doSubmitLabel() {
     });
     const data = await res.json().catch(() => ({ ok: false, status: res.status }));
     if (res.ok) {
+      if (data.pdfUrl) {
+        showSummaryPdfLink(data.pdfUrl);
+      }
       saved = [];
       saveToStorage();
       renderSavedList();
-      alert('Submitted successfully.');
+      alert(data.pdfUrl ? 'Submitted successfully. Summary PDF ready.' : 'Submitted successfully.');
     } else {
       alert(`Submit failed: ${data.status || res.status}`);
     }
@@ -510,6 +522,9 @@ function setupControls() {
 function setupButtons() {
   document.getElementById('saveTemplate').addEventListener('click', () => {
     clampInputs();
+    const previewCanvas = document.querySelector('#labelCanvas');
+    const previewPng = previewCanvas?.toDataURL('image/png');
+    const selectedFontLabel = fontSelect?.options?.[fontSelect.selectedIndex]?.text || state.font;
     const entry = {
       variant: 'nameplate',
       height_in: state.heightIn,
@@ -521,7 +536,12 @@ function setupButtons() {
       corners: state.corners,
       font: state.font,
       lines: state.lines.map((x) => ({ text: x.text, pt: x.pt })),
-      quantity: state.qty
+      quantity: state.qty,
+      qty: state.qty,
+      heightIn: state.heightIn,
+      widthIn: state.widthIn,
+      fontLabel: selectedFontLabel,
+      previewPng
     };
     saved.push(entry);
     saveToStorage();
