@@ -1,3 +1,6 @@
+const WEBHOOK_URL =
+  process.env.ZAPIER_WEBHOOK_URL || 'https://hooks.zapier.com/hooks/catch/24455310/ukxgq3z/';
+
 export const handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -25,13 +28,8 @@ export const handler = async (event) => {
     return { statusCode: 400, headers, body: 'referenceId and savedTemplates are required.' };
   }
 
-  const hookUrl = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
-  if (!hookUrl) {
-    return { statusCode: 500, headers, body: 'Missing ZAPIER_HOOK_URL_NAMEPLATE' };
-  }
-
   try {
-    const resp = await fetch(hookUrl, {
+    const resp = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
