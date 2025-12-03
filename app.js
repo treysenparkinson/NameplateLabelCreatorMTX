@@ -2,6 +2,8 @@ const PPI = 96;
 const LS_KEY = 'ms_nameplate_saved';
 const FONT_SIZES_PT = [8, 12, 14, 16, 18, 20, 22, 24, 28, 32];
 const DEFAULT_FONT_PT = 12;
+const CONTACT_NAME_KEY = 'nameplate_contact_name';
+const CONTACT_EMAIL_KEY = 'nameplate_contact_email';
 
 const PT_TO_PX = 96 / 72; // 1pt at 96dpi
 
@@ -20,6 +22,21 @@ function fitFontPxToWidth(ctx, text, startPx, family, maxWidth) {
     w = ctx.measureText(text).width;
   }
   return Math.max(1, px);
+}
+
+function getSavedContact() {
+  const name = localStorage.getItem(CONTACT_NAME_KEY) || '';
+  const email = localStorage.getItem(CONTACT_EMAIL_KEY) || '';
+  return { name, email };
+}
+
+function saveContact({ name, email }) {
+  localStorage.setItem(CONTACT_NAME_KEY, name.trim());
+  localStorage.setItem(CONTACT_EMAIL_KEY, email.trim());
+}
+
+function isValidEmail(e) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 }
 
 function drawTextLines(ctx, lines, plateX, plateY, plateW, plateH, opts) {
@@ -83,6 +100,96 @@ function scalePreviewToFit() {
   fitBox.style.height = `${naturalH}px`;
 }
 
+function renderContactSummary() {
+  const { name, email } = getSavedContact();
+  const el = document.getElementById('contactSummary');
+  if (!el) return;
+  el.textContent = name && email ? `${name} <${email}>` : 'Not set';
+}
+
+function hideContactErrors() {
+  const nameErr = document.getElementById('contactNameError');
+  const emailErr = document.getElementById('contactEmailError');
+  if (nameErr) nameErr.hidden = true;
+  if (emailErr) emailErr.hidden = true;
+}
+
+function openContactModal() {
+  const modal = document.getElementById('contactModal');
+  if (!modal) return;
+  const { name, email } = getSavedContact();
+  const nameInput = document.getElementById('contactName');
+  const emailInput = document.getElementById('contactEmail');
+  if (nameInput) nameInput.value = name;
+  if (emailInput) emailInput.value = email;
+  hideContactErrors();
+  modal.setAttribute('aria-hidden', 'false');
+  if (nameInput) nameInput.focus();
+}
+
+function closeContactModal() {
+  const modal = document.getElementById('contactModal');
+  if (!modal) return;
+  modal.setAttribute('aria-hidden', 'true');
+  _postSubmitCallback = null;
+}
+
+function saveContactFromModal() {
+  const nameInput = document.getElementById('contactName');
+  const emailInput = document.getElementById('contactEmail');
+  const name = (nameInput?.value || '').trim();
+  const email = (emailInput?.value || '').trim();
+  hideContactErrors();
+  let ok = true;
+  if (!name) {
+    const err = document.getElementById('contactNameError');
+    if (err) err.hidden = false;
+    ok = false;
+  }
+  if (!isValidEmail(email)) {
+    const err = document.getElementById('contactEmailError');
+    if (err) err.hidden = false;
+    ok = false;
+  }
+  if (!ok) return;
+  saveContact({ name, email });
+  renderContactSummary();
+  closeContactModal();
+  if (typeof _postSubmitCallback === 'function') {
+    const cb = _postSubmitCallback;
+    _postSubmitCallback = null;
+    cb();
+  }
+}
+
+function wireContactModal() {
+  const modal = document.getElementById('contactModal');
+  if (!modal) return;
+  modal.addEventListener('click', (e) => {
+    if (e.target.matches('[data-close-modal]')) {
+      closeContactModal();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+      closeContactModal();
+    }
+  });
+  const saveBtn = document.getElementById('saveContactBtn');
+  if (saveBtn) saveBtn.addEventListener('click', saveContactFromModal);
+}
+
+async function onSubmitWithContactGate(e) {
+  e.preventDefault();
+  const { name, email } = getSavedContact();
+  if (!name || !isValidEmail(email)) {
+    _postSubmitCallback = () => doSubmitLabel();
+    openContactModal();
+    return;
+  }
+  doSubmitLabel();
+}
+
 const COLOR_MAP = {
   'Green/White': { bg: '#008000', fg: '#ffffff', name: 'Green/White' },
   'Red/White': { bg: '#cc0000', fg: '#ffffff', name: 'Red/White' },
@@ -107,6 +214,7 @@ let state = {
 let saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
 
 let ctx = null;
+let _postSubmitCallback = null;
 const linesList = document.getElementById('linesList');
 const addLineBtn = document.getElementById('addLine');
 const fontSelect = document.getElementById('fontSelect');
@@ -311,10 +419,14 @@ function saveToStorage() {
 function renderSavedList() {
   const container = document.getElementById('savedList');
   container.innerHTML = '';
+  const savedSub = document.querySelector('.saved-sub');
   if (!saved.length) {
     container.textContent = 'No templates saved yet.';
+    if (savedSub) { savedSub.textContent = 'No templates saved yet.'; savedSub.hidden = false; }
     return;
   }
+
+  if (savedSub) { savedSub.textContent = ''; savedSub.hidden = true; }
 
   saved.forEach((item, idx) => {
     const card = document.createElement('div');
@@ -342,6 +454,40 @@ function renderSavedList() {
     card.appendChild(del);
     container.appendChild(card);
   });
+}
+
+async function doSubmitLabel() {
+  const referenceId = document.getElementById('refId').value.trim();
+  if (!referenceId) {
+    alert('Reference ID is required.');
+    return;
+  }
+  if (!saved.length) {
+    alert('Please save at least one template before submitting.');
+    return;
+  }
+
+  const contact = getSavedContact();
+
+  try {
+    const res = await fetch('/.netlify/functions/sendNameplate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ referenceId, savedTemplates: saved, contact })
+    });
+    const data = await res.json().catch(() => ({ ok: false, status: res.status }));
+    if (res.ok) {
+      saved = [];
+      saveToStorage();
+      renderSavedList();
+      alert('Submitted successfully.');
+    } else {
+      alert(`Submit failed: ${data.status || res.status}`);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Network error submitting label.');
+  }
 }
 
 function setupControls() {
@@ -382,37 +528,11 @@ function setupButtons() {
     renderSavedList();
   });
 
-  document.getElementById('submitAll').addEventListener('click', async () => {
-    const referenceId = document.getElementById('refId').value.trim();
-    if (!referenceId) {
-      alert('Reference ID is required.');
-      return;
-    }
-    if (!saved.length) {
-      alert('Please save at least one template before submitting.');
-      return;
-    }
-
-    try {
-      const res = await fetch('/.netlify/functions/sendNameplate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referenceId, savedTemplates: saved })
-      });
-      const data = await res.json().catch(() => ({ ok: false, status: res.status }));
-      if (res.ok) {
-        saved = [];
-        saveToStorage();
-        renderSavedList();
-        alert('Submitted successfully.');
-      } else {
-        alert(`Submit failed: ${data.status || res.status}`);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Network error submitting label.');
-    }
-  });
+  const submitBtn = document.getElementById('submitLabelBtn');
+  if (submitBtn && !submitBtn.dataset.boundSubmit) {
+    submitBtn.dataset.boundSubmit = '1';
+    submitBtn.addEventListener('click', onSubmitWithContactGate);
+  }
 }
 
 function init() {
@@ -420,6 +540,18 @@ function init() {
   renderLinesControls();
   setupButtons();
   renderSavedList();
+  renderContactSummary();
+  wireContactModal();
+  const editBtn = document.getElementById('editContactBtn');
+  if (editBtn) editBtn.addEventListener('click', openContactModal);
+
+  const submitBtn = document.getElementById('submitLabelBtn') || Array.from(document.querySelectorAll('button')).find((b) => b.textContent && b.textContent.includes('Submit Label!'));
+  if (submitBtn && !submitBtn.dataset.boundSubmit) {
+    submitBtn.id = submitBtn.id || 'submitLabelBtn';
+    submitBtn.dataset.boundSubmit = '1';
+    submitBtn.addEventListener('click', onSubmitWithContactGate);
+  }
+
   render();
 }
 
