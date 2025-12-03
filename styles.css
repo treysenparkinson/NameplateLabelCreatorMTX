@@ -360,6 +360,41 @@ canvas { transform: none !important; }
   box-sizing: border-box;
 }
 
+/* Contact summary under Saved Templates */
+.contact-info { margin-top: 16px; display: grid; gap: 8px; }
+.contact-info__row { font-size: 0.95rem; }
+
+/* Modal */
+.modal { position: fixed; inset: 0; display: none; }
+.modal[aria-hidden="false"] { display: block; }
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+.modal__dialog {
+  position: relative;
+  max-width: 520px;
+  margin: 10vh auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.2);
+  padding: 16px 16px 12px;
+}
+.modal__header { display:flex; align-items:center; justify-content:space-between; gap: 8px; }
+.modal__title { margin:0; font-size: 1.25rem; }
+.modal__close { background:none; border:0; font-size: 1.5rem; line-height:1; cursor:pointer; }
+.modal__body { margin-top: 12px; }
+.modal__footer { display:flex; justify-content:flex-end; gap: 8px; margin-top: 12px; }
+
+.form-row { display:grid; gap:6px; margin-bottom: 12px; }
+.form-row input[type="text"],
+.form-row input[type="email"] {
+  width: 100%; padding: 10px 12px; font-size: 1rem;
+  border: 1px solid #d3d6db; border-radius: 8px;
+}
+.field-error { color: #b00020; font-size: 0.875rem; }
+.btn { padding: 8px 12px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; }
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-secondary { background: #f3f4f6; color: #111827; }
+.btn-sm { padding: 6px 10px; font-size: 0.9rem; }
+
 .page, .wrapper, .container, main {
   max-width: none !important;
   width: auto;
