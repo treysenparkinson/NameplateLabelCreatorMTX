@@ -554,5 +554,4 @@ function init() {
 
   render();
 }
-
 document.addEventListener('DOMContentLoaded', init);
