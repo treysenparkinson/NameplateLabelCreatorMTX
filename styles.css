@@ -360,8 +360,6 @@ canvas { transform: none !important; }
   box-sizing: border-box;
 }
 
-<<<<<<< HEAD
-=======
 .pdf-link {
   display: flex;
   align-items: center;
@@ -379,7 +377,6 @@ canvas { transform: none !important; }
   text-decoration: underline;
 }
 
->>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
 /* Contact summary under Saved Templates */
 .contact-info { margin-top: 16px; display: grid; gap: 8px; }
 .contact-info__row { font-size: 0.95rem; }
@@ -419,7 +416,3 @@ canvas { transform: none !important; }
   max-width: none !important;
   width: auto;
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
