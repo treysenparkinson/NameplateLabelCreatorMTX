@@ -117,6 +117,16 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', ...headers },
+    };
+  } catch (err) {
+    console.error('Nameplate submit error', err);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ error: 'Failed to process submission' })
+    };
+  }
+};
       body: JSON.stringify({ ok: true, pdfUrl })
     };
   } catch (err) {

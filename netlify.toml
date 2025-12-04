@@ -1,3 +1,7 @@
 [build]
   publish = "."
+<<<<<<< HEAD
   functions = "netlify/functions"
+=======
+  functions = "netlify/functions"
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
