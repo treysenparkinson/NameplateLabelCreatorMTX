@@ -1,4 +1,4 @@
-import PDFDocument from 'pdfkit';
+const PDFDocument = require('pdfkit');
 
 function dataUrlToBuffer(dataUrl) {
   if (!dataUrl || typeof dataUrl !== 'string') return null;
@@ -82,7 +82,7 @@ function drawItemRow(doc, item, x, widths, rowHeight) {
   doc.y = baseY + rowHeight + 6;
 }
 
-export async function renderSummaryPdf({ title, referenceId, createdAt, items = [] }) {
+async function renderSummaryPdf({ title, referenceId, createdAt, items = [] }) {
   const doc = new PDFDocument({ size: 'LETTER', margin: 40 });
   const buffers = [];
   doc.on('data', (b) => buffers.push(b));
@@ -114,7 +114,7 @@ export async function renderSummaryPdf({ title, referenceId, createdAt, items = 
   });
 }
 
-export async function generateNameplateSummaryPdf({ referenceId, templates = [], contact }) {
+async function generateNameplateSummaryPdf({ referenceId, templates = [], contact }) {
   const decimals = (n) => (isFinite(n) ? Number(n).toFixed(2) : '0.00');
   const items = templates.map((t) => {
     const h = Number(t.heightInches ?? t.heightIn ?? t.height ?? 0);
@@ -138,3 +138,5 @@ export async function generateNameplateSummaryPdf({ referenceId, templates = [],
     items
   });
 }
+
+module.exports = { renderSummaryPdf, generateNameplateSummaryPdf };
