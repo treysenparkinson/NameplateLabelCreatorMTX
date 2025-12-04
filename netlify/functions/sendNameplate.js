@@ -5,10 +5,8 @@ const BUCKET = process.env.S3_BUCKET || "matrix-systems-labels";
 const REGION = process.env.AWS_REGION || "us-west-1";
 const ZAPIER_HOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 
-// Use the explicit regional endpoint for this bucket to avoid PermanentRedirect
 const s3 = new S3Client({
   region: REGION,
-  endpoint: `https://${BUCKET}.s3.${REGION}.amazonaws.com`,
 });
 
 console.log("sendNameplate S3 config:", { REGION, BUCKET });
