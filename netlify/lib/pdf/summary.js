@@ -112,4 +112,3 @@ export async function renderSummaryPdf({ title, referenceId, createdAt, items = 
     doc.on('error', reject);
     doc.end();
   });
-}
