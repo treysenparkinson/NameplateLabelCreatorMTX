@@ -468,19 +468,54 @@ async function doSubmitLabel() {
   }
 
   const contact = getSavedContact();
+  if (!contact.name || !isValidEmail(contact.email)) {
+    alert('Please provide a valid contact name and email.');
+    return;
+  }
+
+  const templates = saved.map((item) => {
+    const quantity = Number(item.quantity ?? item.qty ?? 1) || 1;
+    const heightInches = Number(item.heightInches ?? item.heightIn ?? item.height_in ?? item.height ?? 0);
+    const widthInches = Number(item.widthInches ?? item.widthIn ?? item.width_in ?? item.width ?? 0);
+    const fontFamily = item.fontFamily || item.font || 'Calibri, Arial, Helvetica, sans-serif';
+    const colorPalette = item.colorPalette || item.colorName || item.color?.name || '';
+    const cornerStyle = item.cornerStyle || item.corners || '';
+    const lines = Array.isArray(item.lines)
+      ? item.lines.map((line) => ({
+          text: line.text || '',
+          fontSizePt: Number(line.fontSizePt ?? line.pt ?? DEFAULT_FONT_PT) || DEFAULT_FONT_PT
+        }))
+      : [];
+
+    return {
+      quantity,
+      heightInches,
+      widthInches,
+      fontFamily,
+      colorPalette,
+      cornerStyle,
+      lines,
+      previewDataUrl: item.previewDataUrl || item.previewPng || ''
+    };
+  });
+
+  if (!templates.length) {
+    alert('Please save at least one template before submitting.');
+    return;
+  }
 
   try {
     const res = await fetch('/.netlify/functions/sendNameplate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ referenceId, savedTemplates: saved, contact })
+      body: JSON.stringify({ referenceId, contact, templates })
     });
-    const data = await res.json().catch(() => ({ ok: false, status: res.status }));
-    if (res.ok) {
+    const data = await res.json().catch(() => ({ success: false, status: res.status }));
+    if (res.ok && data.success) {
       saved = [];
       saveToStorage();
       renderSavedList();
-      alert('Submitted successfully.');
+      alert(data.message || 'Submission successful!');
     } else {
       alert(`Submit failed: ${data.status || res.status}`);
     }
@@ -510,18 +545,32 @@ function setupControls() {
 function setupButtons() {
   document.getElementById('saveTemplate').addEventListener('click', () => {
     clampInputs();
+    const previewCanvas = document.querySelector('#labelCanvas');
+    const previewPng = previewCanvas?.toDataURL('image/png');
+    const selectedFontLabel = fontSelect?.options?.[fontSelect.selectedIndex]?.text || state.font;
     const entry = {
       variant: 'nameplate',
       height_in: state.heightIn,
       width_in: state.widthIn,
+      heightIn: state.heightIn,
+      widthIn: state.widthIn,
+      heightInches: state.heightIn,
+      widthInches: state.widthIn,
       sizeName: `${state.heightIn.toFixed(2)}" x ${state.widthIn.toFixed(2)}"`,
       colorName: state.color.name,
+      colorPalette: state.color.name,
       bg: state.color.bg,
       fg: state.color.fg,
       corners: state.corners,
+      cornerStyle: state.corners,
       font: state.font,
-      lines: state.lines.map((x) => ({ text: x.text, pt: x.pt })),
-      quantity: state.qty
+      fontFamily: state.font,
+      lines: state.lines.map((x) => ({ text: x.text, pt: x.pt, fontSizePt: x.pt })),
+      quantity: state.qty,
+      qty: state.qty,
+      fontLabel: selectedFontLabel,
+      previewPng,
+      previewDataUrl: previewPng
     };
     saved.push(entry);
     saveToStorage();

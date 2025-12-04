@@ -1,3 +1,6 @@
+import { generateNameplateSummaryPdf } from '../lib/pdf/summary.js';
+import { putPdf } from '../lib/upload.js';
+
 const WEBHOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
@@ -59,21 +62,59 @@ export const handler = async (event) => {
   }
 
   const safePayload = typeof payload === 'object' && payload !== null ? payload : {};
-  const data = {
-    ...safePayload,
-    _meta: {
-      source: 'nameplate-label-creator',
-      receivedAt: new Date().toISOString(),
-      userAgent: event.headers?.['user-agent'] || event.headers?.['User-Agent'] || '',
-      referer: event.headers?.referer || event.headers?.Referer || ''
-    }
-  };
 
   try {
+    const referenceId = (safePayload.referenceId || '').toString().trim();
+    const contact = safePayload.contact || {};
+    const templates = Array.isArray(safePayload.templates) ? safePayload.templates : [];
+
+    if (!referenceId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ error: 'Reference ID is required.' })
+      };
+    }
+
+    if (!contact.name || !contact.email) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ error: 'Contact name and email are required.' })
+      };
+    }
+
+    if (!templates.length) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ error: 'At least one template is required.' })
+      };
+    }
+
+    const pdfBuffer = await generateNameplateSummaryPdf({
+      referenceId,
+      contact,
+      templates
+    });
+
+    const safeRef = encodeURIComponent(referenceId || 'ref');
+    const key = `nameplate/${safeRef}/${Date.now()}.pdf`;
+    const pdfUrl = await putPdf({
+      key,
+      buffer: pdfBuffer
+    });
+
     const resp = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        referenceId,
+        contact,
+        templates,
+        pdfUrl,
+        source: 'nameplate-label-creator'
+      })
     });
 
     if (!resp.ok) {
@@ -88,13 +129,14 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ ok: true })
+      body: JSON.stringify({ success: true, message: 'Nameplate submitted successfully.' })
     };
   } catch (err) {
+    console.error('Nameplate submit error', err);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ error: 'Failed to reach Zapier hook' })
+      body: JSON.stringify({ error: 'Failed to process submission' })
     };
   }
 };
