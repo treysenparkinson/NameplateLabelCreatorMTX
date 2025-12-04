@@ -1,142 +1,116 @@
-import { generateNameplateSummaryPdf } from '../lib/pdf/summary.js';
-import { putPdf } from '../lib/upload.js';
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { generateNameplateSummaryPdf } = require("../lib/pdf/summary");
 
-const WEBHOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const REGION = process.env.AWS_REGION;
+const BUCKET = process.env.S3_BUCKET;
+const ZAPIER_HOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 
-function corsHeaders(origin) {
-  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : 'null';
-  return {
-    'Access-Control-Allow-Origin': allow,
-    Vary: 'Origin',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
-}
+const s3 = new S3Client({ region: REGION });
 
-export const handler = async (event) => {
-  const origin = event.headers?.origin || event.headers?.Origin || '';
-  const headers = corsHeaders(origin);
+exports.handler = async (event) => {
+  console.log("sendNameplate invoked");
 
-  if (!WEBHOOK_URL) {
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ error: 'Server not configured' })
-    };
-  }
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-
-  if (event.httpMethod !== 'POST') {
+  if (event.httpMethod && event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ error: 'Method not allowed' })
+      body: JSON.stringify({ success: false, message: "Method not allowed" }),
     };
   }
-
-  const contentType = event.headers?.['content-type'] || event.headers?.['Content-Type'] || '';
-  if (!contentType.toLowerCase().includes('application/json')) {
-    return {
-      statusCode: 415,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ error: 'Unsupported Media Type' })
-    };
-  }
-
-  let payload;
-  try {
-    payload = JSON.parse(event.body || '{}');
-  } catch (err) {
-    return {
-      statusCode: 400,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ error: 'Invalid JSON' })
-    };
-  }
-
-  const safePayload = typeof payload === 'object' && payload !== null ? payload : {};
 
   try {
-    const referenceId = (safePayload.referenceId || '').toString().trim();
-    const contact = safePayload.contact || {};
-    const templates = Array.isArray(safePayload.templates) ? safePayload.templates : [];
+    const body = JSON.parse(event.body || "{}");
+    const { referenceId, contact, templates } = body;
 
-    if (!referenceId) {
+    if (!referenceId || !contact?.name || !contact?.email || !Array.isArray(templates) || templates.length === 0) {
+      console.error("Validation failed", { referenceId, contact, templatesCount: templates?.length });
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({ error: 'Reference ID is required.' })
+        body: JSON.stringify({
+          success: false,
+          message: "Reference ID, contact (name & email), and at least one template are required.",
+        }),
       };
     }
 
-    if (!contact.name || !contact.email) {
+    if (!REGION || !BUCKET || !ZAPIER_HOOK_URL) {
+      console.error("Missing required env vars", { REGION, BUCKET, ZAPIER_HOOK_URL });
       return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({ error: 'Contact name and email are required.' })
+        statusCode: 500,
+        body: JSON.stringify({
+          success: false,
+          message: "Server configuration error. Missing environment variables.",
+        }),
       };
     }
 
-    if (!templates.length) {
+    console.log("Generating PDF for referenceId:", referenceId);
+
+    const pdfBuffer = await generateNameplateSummaryPdf({ referenceId, contact, templates });
+
+    if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
+      console.error("PDF generator did not return a Buffer");
       return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({ error: 'At least one template is required.' })
+        statusCode: 500,
+        body: JSON.stringify({ success: false, message: "Failed to generate PDF." }),
       };
     }
 
-    const pdfBuffer = await generateNameplateSummaryPdf({
-      referenceId,
-      contact,
-      templates
-    });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const key = `nameplate/${referenceId}/${timestamp}.pdf`;
 
-    const safeRef = encodeURIComponent(referenceId || 'ref');
-    const key = `nameplate/${safeRef}/${Date.now()}.pdf`;
-    const pdfUrl = await putPdf({
-      key,
-      buffer: pdfBuffer
-    });
+    console.log("Uploading PDF to S3", { bucket: BUCKET, key });
 
-    const resp = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: pdfBuffer,
+        ContentType: "application/pdf",
+      })
+    );
+
+    const pdfUrl = `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
+
+    console.log("Posting to Zapier", { ZAPIER_HOOK_URL });
+
+    const zapierRes = await fetch(ZAPIER_HOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         referenceId,
         contact,
         templates,
         pdfUrl,
-        source: 'nameplate-label-creator'
-      })
+        source: "nameplate-label-creator",
+      }),
     });
 
-    if (!resp.ok) {
-      const text = await resp.text();
+    if (!zapierRes.ok) {
+      const text = await zapierRes.text().catch(() => "");
+      console.error("Zapier responded with non-OK status", zapierRes.status, text);
       return {
         statusCode: 502,
-        headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({ error: 'Zapier error', status: resp.status, body: text || '' })
+        body: JSON.stringify({ success: false, message: "Failed to notify Zapier." }),
       };
     }
 
+    console.log("sendNameplate completed successfully");
+
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ success: true, message: 'Nameplate submitted successfully.' })
+      body: JSON.stringify({
+        success: true,
+        message: "Nameplate label submitted successfully.",
+      }),
     };
   } catch (err) {
-    console.error('Nameplate submit error', err);
+    console.error("sendNameplate error:", err);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ error: 'Failed to process submission' })
+      body: JSON.stringify({
+        success: false,
+        message: "Unexpected error in sendNameplate.",
+      }),
     };
   }
 };
