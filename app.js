@@ -480,7 +480,7 @@ async function doSubmitLabel() {
       saved = [];
       saveToStorage();
       renderSavedList();
-      alert(data.message || 'Submitted successfully.');
+      alert(data.message || 'Label submitted successfully.');
     } else {
       alert(`Submit failed: ${data.status || res.status}`);
     }
