@@ -1,7 +1,12 @@
 [build]
-  publish = "."
-<<<<<<< HEAD
-  functions = "netlify/functions"
-=======
-  functions = "netlify/functions"
->>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
+publish   = "."
+functions = "netlify/functions"
+command   = "npm ci"
+
+[functions]
+# Bundle node_modules used by functions (pdf-lib, AWS SDK, etc.)
+node_bundler = "esbuild"
+
+[build.environment]
+NODE_VERSION = "18"
+
