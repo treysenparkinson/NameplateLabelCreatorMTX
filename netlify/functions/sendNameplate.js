@@ -1,11 +1,17 @@
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const PDFDocument = require("pdfkit");
 
-const REGION = process.env.AWS_REGION;
-const BUCKET = process.env.S3_BUCKET;
+const BUCKET = process.env.S3_BUCKET || "matrix-systems-labels";
+const REGION = process.env.AWS_REGION || "us-west-1";
 const ZAPIER_HOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 
-const s3 = new S3Client({ region: REGION });
+// Use the explicit regional endpoint for this bucket to avoid PermanentRedirect
+const s3 = new S3Client({
+  region: REGION,
+  endpoint: `https://${BUCKET}.s3.${REGION}.amazonaws.com`,
+});
+
+console.log("sendNameplate S3 config:", { REGION, BUCKET });
 
 // Inline PDF generator – no external local modules
 function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
@@ -143,14 +149,32 @@ exports.handler = async (event) => {
 
     console.log("Uploading PDF to S3", { bucket: BUCKET, key });
 
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: key,
-        Body: pdfBuffer,
-        ContentType: "application/pdf",
-      })
-    );
+    try {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: key,
+          Body: pdfBuffer,
+          ContentType: "application/pdf",
+        })
+      );
+    } catch (err) {
+      console.error("S3 upload error", {
+        code: err.Code || err.name,
+        message: err.message,
+        endpoint: err.$metadata?.endpoint || undefined,
+        httpStatusCode: err.$metadata?.httpStatusCode,
+      });
+
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          success: false,
+          message: "Failed to upload PDF to S3.",
+          errorCode: err.Code || err.name,
+        }),
+      };
+    }
 
     const pdfUrl = `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
 
