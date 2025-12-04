@@ -360,6 +360,23 @@ canvas { transform: none !important; }
   box-sizing: border-box;
 }
 
+.pdf-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.pdf-link a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.pdf-link a:hover {
+  text-decoration: underline;
+}
+
 /* Contact summary under Saved Templates */
 .contact-info { margin-top: 16px; display: grid; gap: 8px; }
 .contact-info__row { font-size: 0.95rem; }
@@ -399,4 +416,3 @@ canvas { transform: none !important; }
   max-width: none !important;
   width: auto;
 }
-
