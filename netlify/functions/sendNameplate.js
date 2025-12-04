@@ -117,7 +117,7 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ ok: true, pdfUrl })
+      body: JSON.stringify({ success: true, message: 'Label submitted successfully.' })
     };
   } catch (err) {
     console.error('Nameplate submit error', err);

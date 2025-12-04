@@ -456,15 +456,6 @@ function renderSavedList() {
   });
 }
 
-function showSummaryPdfLink(url) {
-  const wrap = document.getElementById('summaryPdfWrap');
-  const link = document.getElementById('summaryPdfLink');
-  if (wrap && link && url) {
-    link.href = url;
-    wrap.hidden = false;
-  }
-}
-
 async function doSubmitLabel() {
   const referenceId = document.getElementById('refId').value.trim();
   if (!referenceId) {
@@ -484,15 +475,12 @@ async function doSubmitLabel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ referenceId, savedTemplates: saved, contact })
     });
-    const data = await res.json().catch(() => ({ ok: false, status: res.status }));
-    if (res.ok) {
-      if (data.pdfUrl) {
-        showSummaryPdfLink(data.pdfUrl);
-      }
+    const data = await res.json().catch(() => ({ success: false, status: res.status }));
+    if (res.ok && data.success) {
       saved = [];
       saveToStorage();
       renderSavedList();
-      alert(data.pdfUrl ? 'Submitted successfully. Summary PDF ready.' : 'Submitted successfully.');
+      alert(data.message || 'Submitted successfully.');
     } else {
       alert(`Submit failed: ${data.status || res.status}`);
     }
