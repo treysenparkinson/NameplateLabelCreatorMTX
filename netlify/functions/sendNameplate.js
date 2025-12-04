@@ -1,5 +1,5 @@
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { generateNameplateSummaryPdf } = require("./pdfSummary");
+const { generateNameplateSummaryPdf } = require("./pdfSummary.js");
 
 const REGION = process.env.AWS_REGION;
 const BUCKET = process.env.S3_BUCKET;
