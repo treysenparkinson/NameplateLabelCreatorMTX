@@ -26,8 +26,5 @@ export async function putPdf({ key, buffer, contentType = 'application/pdf' }) {
     })
   );
 
-  const base = REGION && REGION !== 'us-east-1'
-    ? `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`
-    : `https://${BUCKET}.s3.amazonaws.com/${key}`;
-  return base;
+  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
 }

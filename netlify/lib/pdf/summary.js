@@ -113,3 +113,28 @@ export async function renderSummaryPdf({ title, referenceId, createdAt, items = 
     doc.end();
   });
 }
+
+export async function generateNameplateSummaryPdf({ referenceId, templates = [], contact }) {
+  const decimals = (n) => (isFinite(n) ? Number(n).toFixed(2) : '0.00');
+  const items = templates.map((t) => {
+    const h = Number(t.heightInches ?? t.heightIn ?? t.height ?? 0);
+    const w = Number(t.widthInches ?? t.widthIn ?? t.width ?? 0);
+    const sizeTop = `${decimals(h)}" × ${decimals(w)}"`;
+    const detailLine = [t.colorPalette, t.cornerStyle].filter(Boolean).join(' • ');
+
+    return {
+      previewPng: t.previewDataUrl,
+      sizeTop,
+      sizeBottom: detailLine || 'Custom Nameplate',
+      fontLabel: t.fontFamily || 'Calibri (Default)',
+      qty: Number(t.quantity || 0) || 0
+    };
+  });
+
+  return renderSummaryPdf({
+    title: 'Saved Labels Summary',
+    referenceId,
+    createdAt: new Date(),
+    items
+  });
+}

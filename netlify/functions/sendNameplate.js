@@ -1,4 +1,4 @@
-import { renderSummaryPdf } from '../lib/pdf/summary.js';
+import { generateNameplateSummaryPdf } from '../lib/pdf/summary.js';
 import { putPdf } from '../lib/upload.js';
 
 const WEBHOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
@@ -62,47 +62,59 @@ export const handler = async (event) => {
   }
 
   const safePayload = typeof payload === 'object' && payload !== null ? payload : {};
-  const data = {
-    ...safePayload,
-    _meta: {
-      source: 'nameplate-label-creator',
-      receivedAt: new Date().toISOString(),
-      userAgent: event.headers?.['user-agent'] || event.headers?.['User-Agent'] || '',
-      referer: event.headers?.referer || event.headers?.Referer || ''
-    }
-  };
 
   try {
-    const createdAt = new Date();
-    const decimals = (n) => (isFinite(n) ? Number(n).toFixed(2) : '0.00');
-    const items = (safePayload.savedTemplates || []).map((t) => {
-      const h = Number(t.heightIn || t.height || 0);
-      const w = Number(t.widthIn || t.width || 0);
+    const referenceId = (safePayload.referenceId || '').toString().trim();
+    const contact = safePayload.contact || {};
+    const templates = Array.isArray(safePayload.templates) ? safePayload.templates : [];
+
+    if (!referenceId) {
       return {
-        previewPng: t.previewPng,
-        sizeTop: 'Custom Nameplate',
-        sizeBottom: `${decimals(h)}" × ${decimals(w)}"`,
-        fontLabel: t.fontLabel || t.font || 'Calibri (Default)',
-        qty: Number(t.qty || t.quantity || 1)
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ error: 'Reference ID is required.' })
       };
+    }
+
+    if (!contact.name || !contact.email) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ error: 'Contact name and email are required.' })
+      };
+    }
+
+    if (!templates.length) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ error: 'At least one template is required.' })
+      };
+    }
+
+    const pdfBuffer = await generateNameplateSummaryPdf({
+      referenceId,
+      contact,
+      templates
     });
 
-    const pdfBuffer = await renderSummaryPdf({
-      title: 'Saved Labels Summary',
-      referenceId: safePayload.referenceId,
-      createdAt,
-      items
-    });
-
+    const safeRef = encodeURIComponent(referenceId || 'ref');
+    const key = `nameplate/${safeRef}/${Date.now()}.pdf`;
     const pdfUrl = await putPdf({
-      key: `nameplate/${(safePayload.referenceId || 'ref').replace(/\W+/g, '-')}-${Date.now()}.pdf`,
+      key,
       buffer: pdfBuffer
     });
 
     const resp = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...data, pdfUrl })
+      body: JSON.stringify({
+        referenceId,
+        contact,
+        templates,
+        pdfUrl,
+        source: 'nameplate-label-creator'
+      })
     });
 
     if (!resp.ok) {
@@ -117,7 +129,7 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', ...headers },
-      body: JSON.stringify({ success: true, message: 'Label submitted successfully.' })
+      body: JSON.stringify({ success: true, message: 'Nameplate submitted successfully.' })
     };
   } catch (err) {
     console.error('Nameplate submit error', err);
