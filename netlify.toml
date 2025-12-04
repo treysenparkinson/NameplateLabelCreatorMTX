@@ -1,12 +1,10 @@
 [build]
-publish   = "."
-functions = "netlify/functions"
-command   = "npm ci"
+  publish = "."
+  functions = "netlify/functions"
 
 [functions]
-# Bundle node_modules used by functions (pdf-lib, AWS SDK, etc.)
-node_bundler = "esbuild"
-
-[build.environment]
-NODE_VERSION = "18"
-
+  node_bundler = "esbuild"
+  external_node_modules = ["pdfkit", "@aws-sdk/client-s3"]
+  included_files = [
+    "node_modules/pdfkit/js/data/**"
+  ]
