@@ -475,12 +475,12 @@ async function doSubmitLabel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ referenceId, savedTemplates: saved, contact })
     });
-    const data = await res.json().catch(() => ({ ok: false, status: res.status }));
-    if (res.ok) {
+    const data = await res.json().catch(() => ({ success: false, status: res.status }));
+    if (res.ok && data.success) {
       saved = [];
       saveToStorage();
       renderSavedList();
-      alert('Submitted successfully.');
+      alert(data.message || 'Submitted successfully.');
     } else {
       alert(`Submit failed: ${data.status || res.status}`);
     }
@@ -510,6 +510,9 @@ function setupControls() {
 function setupButtons() {
   document.getElementById('saveTemplate').addEventListener('click', () => {
     clampInputs();
+    const previewCanvas = document.querySelector('#labelCanvas');
+    const previewPng = previewCanvas?.toDataURL('image/png');
+    const selectedFontLabel = fontSelect?.options?.[fontSelect.selectedIndex]?.text || state.font;
     const entry = {
       variant: 'nameplate',
       height_in: state.heightIn,
@@ -521,7 +524,12 @@ function setupButtons() {
       corners: state.corners,
       font: state.font,
       lines: state.lines.map((x) => ({ text: x.text, pt: x.pt })),
-      quantity: state.qty
+      quantity: state.qty,
+      qty: state.qty,
+      heightIn: state.heightIn,
+      widthIn: state.widthIn,
+      fontLabel: selectedFontLabel,
+      previewPng
     };
     saved.push(entry);
     saveToStorage();
