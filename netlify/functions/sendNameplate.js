@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+import { renderSummaryPdf } from '../lib/pdf/summary.js';
+import { putPdf } from '../lib/upload.js';
+
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
 const WEBHOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
@@ -70,10 +76,43 @@ export const handler = async (event) => {
   };
 
   try {
+<<<<<<< HEAD
     const resp = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
+=======
+    const createdAt = new Date();
+    const decimals = (n) => (isFinite(n) ? Number(n).toFixed(2) : '0.00');
+    const items = (safePayload.savedTemplates || []).map((t) => {
+      const h = Number(t.heightIn || t.height || 0);
+      const w = Number(t.widthIn || t.width || 0);
+      return {
+        previewPng: t.previewPng,
+        sizeTop: 'Custom Nameplate',
+        sizeBottom: `${decimals(h)}" × ${decimals(w)}"`,
+        fontLabel: t.fontLabel || t.font || 'Calibri (Default)',
+        qty: Number(t.qty || t.quantity || 1)
+      };
+    });
+
+    const pdfBuffer = await renderSummaryPdf({
+      title: 'Saved Labels Summary',
+      referenceId: safePayload.referenceId,
+      createdAt,
+      items
+    });
+
+    const pdfUrl = await putPdf({
+      key: `nameplate/${(safePayload.referenceId || 'ref').replace(/\W+/g, '-')}-${Date.now()}.pdf`,
+      buffer: pdfBuffer
+    });
+
+    const resp = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, pdfUrl })
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
     });
 
     if (!resp.ok) {
@@ -88,6 +127,7 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', ...headers },
+<<<<<<< HEAD
       body: JSON.stringify({ ok: true })
     };
   } catch (err) {
@@ -98,3 +138,16 @@ export const handler = async (event) => {
     };
   }
 };
+=======
+      body: JSON.stringify({ ok: true, pdfUrl })
+    };
+  } catch (err) {
+    console.error('Nameplate submit error', err);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ error: 'Failed to process submission' })
+    };
+  }
+};
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)

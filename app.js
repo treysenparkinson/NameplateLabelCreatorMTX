@@ -456,6 +456,18 @@ function renderSavedList() {
   });
 }
 
+<<<<<<< HEAD
+=======
+function showSummaryPdfLink(url) {
+  const wrap = document.getElementById('summaryPdfWrap');
+  const link = document.getElementById('summaryPdfLink');
+  if (wrap && link && url) {
+    link.href = url;
+    wrap.hidden = false;
+  }
+}
+
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
 async function doSubmitLabel() {
   const referenceId = document.getElementById('refId').value.trim();
   if (!referenceId) {
@@ -477,10 +489,20 @@ async function doSubmitLabel() {
     });
     const data = await res.json().catch(() => ({ ok: false, status: res.status }));
     if (res.ok) {
+<<<<<<< HEAD
       saved = [];
       saveToStorage();
       renderSavedList();
       alert('Submitted successfully.');
+=======
+      if (data.pdfUrl) {
+        showSummaryPdfLink(data.pdfUrl);
+      }
+      saved = [];
+      saveToStorage();
+      renderSavedList();
+      alert(data.pdfUrl ? 'Submitted successfully. Summary PDF ready.' : 'Submitted successfully.');
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
     } else {
       alert(`Submit failed: ${data.status || res.status}`);
     }
@@ -510,6 +532,12 @@ function setupControls() {
 function setupButtons() {
   document.getElementById('saveTemplate').addEventListener('click', () => {
     clampInputs();
+<<<<<<< HEAD
+=======
+    const previewCanvas = document.querySelector('#labelCanvas');
+    const previewPng = previewCanvas?.toDataURL('image/png');
+    const selectedFontLabel = fontSelect?.options?.[fontSelect.selectedIndex]?.text || state.font;
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
     const entry = {
       variant: 'nameplate',
       height_in: state.heightIn,
@@ -521,7 +549,16 @@ function setupButtons() {
       corners: state.corners,
       font: state.font,
       lines: state.lines.map((x) => ({ text: x.text, pt: x.pt })),
+<<<<<<< HEAD
       quantity: state.qty
+=======
+      quantity: state.qty,
+      qty: state.qty,
+      heightIn: state.heightIn,
+      widthIn: state.widthIn,
+      fontLabel: selectedFontLabel,
+      previewPng
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
     };
     saved.push(entry);
     saveToStorage();
@@ -554,4 +591,8 @@ function init() {
 
   render();
 }
+<<<<<<< HEAD
 document.addEventListener('DOMContentLoaded', init);
+=======
+document.addEventListener('DOMContentLoaded', init);
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)

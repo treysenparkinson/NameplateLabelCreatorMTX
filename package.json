@@ -1,1 +1,13 @@
+<<<<<<< HEAD
 { "name": "nameplate-label-creator", "private": true, "type": "module" }
+=======
+{
+  "name": "nameplate-label-creator",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.670.0",
+    "pdfkit": "^0.15.0"
+  }
+}
+>>>>>>> 4b8edc2 (flattened everything, removed duplicated inner file. commit ready and everything straightened out.)
