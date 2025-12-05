@@ -97,19 +97,23 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
     templates.forEach((t) => {
       if (currentY + rowH > doc.page.height - margin) {
         doc.addPage();
+
+        const newTableHeaderY = margin + 40;
         doc.fontSize(11);
-        doc.text("Preview", margin, tableHeaderY);
-        doc.text("Size/Name", margin + previewCol + 10, tableHeaderY);
-        doc.text("Font", margin + previewCol + sizeCol + 20, tableHeaderY);
-        doc.text("Qty", qtyHeaderX, tableHeaderY, { width: qtyCol, align: "center" });
+        doc.text("Preview", margin, newTableHeaderY);
+        doc.text("Size/Name", margin + previewCol + 10, newTableHeaderY);
+        doc.text("Font", margin + previewCol + sizeCol + 20, newTableHeaderY);
+        doc.text("Qty", qtyHeaderX, newTableHeaderY, { width: qtyCol, align: "center" });
+
         doc.save();
         doc.strokeColor("#DDDDDD").lineWidth(1);
         doc
-          .moveTo(margin, tableHeaderY + 14)
-          .lineTo(doc.page.width - margin, tableHeaderY + 14)
+          .moveTo(margin, newTableHeaderY + 14)
+          .lineTo(doc.page.width - margin, newTableHeaderY + 14)
           .stroke();
         doc.restore();
-        currentY = tableHeaderY + 24;
+
+        currentY = newTableHeaderY + 24;
       }
 
       if (t.previewDataUrl) {
