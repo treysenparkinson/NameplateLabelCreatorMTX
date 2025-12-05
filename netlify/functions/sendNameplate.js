@@ -1,4 +1,5 @@
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const PDFDocument = require("pdfkit");
 
 const BUCKET = process.env.S3_BUCKET || "matrix-systems-labels";
@@ -178,7 +179,6 @@ exports.handler = async (event) => {
           Key: key,
           Body: pdfBuffer,
           ContentType: "application/pdf",
-          ACL: "public-read",
         })
       );
     } catch (err) {
@@ -199,7 +199,18 @@ exports.handler = async (event) => {
       };
     }
 
-    const pdfUrl = `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
+    // Generate a presigned URL for the uploaded PDF (valid for 24 hours)
+    const signedUrl = await getSignedUrl(
+      s3,
+      new GetObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+      }),
+      { expiresIn: 60 * 60 * 24 }
+    );
+
+    const pdfUrl = signedUrl;
+    console.log("Generated presigned pdfUrl:", pdfUrl);
 
     console.log("Posting to Zapier", { ZAPIER_HOOK_URL });
 
