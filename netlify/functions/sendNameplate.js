@@ -142,7 +142,7 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
       doc.text(fontDisplay, fontX, currentY + 5);
 
       const qtyX = margin + previewCol + sizeCol + fontCol + 30;
-      doc.text(String(t.quantity || 1), qtyX, currentY + 5, {
+      doc.fontSize(10).text(`Qty: ${t.quantity || 1}`, qtyX, currentY + 5, {
         width: qtyCol,
         align: "center",
       });
@@ -152,10 +152,12 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
 
     const pageRange = doc.bufferedPageRange();
     const pageCount = pageRange.count;
-    const footerY = doc.page.height - margin + 5;
     const ts = new Date().toLocaleString("en-US", { timeZone: "America/Denver" });
     for (let p = 0; p < pageCount; p++) {
-      doc.switchToPage((pageRange.start || 0) + p);
+      const pageIndex = (pageRange.start || 0) + p;
+      doc.switchToPage(pageIndex);
+
+      const footerY = doc.page.height - margin + 5;
 
       doc.fontSize(7).text(`Page ${p + 1} of ${pageCount}`, margin, margin - 10);
       doc.fontSize(8).text(
