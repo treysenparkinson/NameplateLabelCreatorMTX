@@ -41,13 +41,12 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
     const margin = 50;
     const previewCol = 120;
     const sizeCol = 220;
-    const fontCol = 120;
+    const fontCol = 160;
     const qtyCol = 60;
-    const rowH = 80;
+    const rowH = 70;
 
-    // Header
     const headerY = margin;
-    doc.fontSize(20).text("Saved Labels Summary", margin, headerY);
+    doc.fontSize(20).text("Nameplate Label Summary", margin, headerY);
     doc.fontSize(10);
     if (referenceId) doc.text(`Reference ID: ${referenceId}`, margin, headerY + 25);
     if (contact?.name || contact?.email)
@@ -59,27 +58,25 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
         headerY + 38
       );
 
-    // Column headers
     const tableHeaderY = headerY + 60;
     doc.fontSize(11);
     doc.text("Preview", margin, tableHeaderY);
     doc.text("Size/Name", margin + previewCol + 10, tableHeaderY);
     doc.text("Font", margin + previewCol + sizeCol + 20, tableHeaderY);
-    doc.text("Qty", margin + previewCol + sizeCol + fontCol + 30, tableHeaderY);
+    const qtyHeaderX = margin + previewCol + sizeCol + fontCol + 30;
+    doc.text("Qty", qtyHeaderX, tableHeaderY, { width: qtyCol, align: "center" });
 
     let currentY = tableHeaderY + 20;
 
-    // Rows
     templates.forEach((t) => {
       if (currentY + rowH > doc.page.height - margin) {
         doc.addPage();
-        currentY = tableHeaderY;
         doc.fontSize(11);
-        doc.text("Preview", margin, currentY);
-        doc.text("Size/Name", margin + previewCol + 10, currentY);
-        doc.text("Font", margin + previewCol + sizeCol + 20, currentY);
-        doc.text("Qty", margin + previewCol + sizeCol + fontCol + 30, currentY);
-        currentY += 20;
+        doc.text("Preview", margin, tableHeaderY);
+        doc.text("Size/Name", margin + previewCol + 10, tableHeaderY);
+        doc.text("Font", margin + previewCol + sizeCol + 20, tableHeaderY);
+        doc.text("Qty", qtyHeaderX, tableHeaderY, { width: qtyCol, align: "center" });
+        currentY = tableHeaderY + 20;
       }
 
       if (t.previewDataUrl) {
@@ -94,11 +91,13 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
       }
 
       const sizeX = margin + previewCol + 10;
-      doc.fontSize(10).text(
-        `${t.heightInches || "0"}" × ${t.widthInches || "0"}"`,
-        sizeX,
-        currentY + 5
-      );
+      doc.fontSize(10);
+      let sizeY = currentY + 5;
+      if (t.name) {
+        doc.text(t.name, sizeX, sizeY);
+        sizeY += 14;
+      }
+      doc.text(`${t.heightInches || "0"}" × ${t.widthInches || "0"}"`, sizeX, sizeY);
 
       const fontX = margin + previewCol + sizeCol + 20;
       const fontDisplay =
@@ -110,21 +109,28 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
       doc.text(fontDisplay, fontX, currentY + 5);
 
       const qtyX = margin + previewCol + sizeCol + fontCol + 30;
-      doc.text(String(t.quantity || 1), qtyX, currentY + 5);
+      doc.text(String(t.quantity || 1), qtyX, currentY + 5, {
+        width: qtyCol,
+        align: "center",
+      });
 
       currentY += rowH;
     });
 
-    // Footer with page numbers
-    const ts = new Date().toISOString();
     const pageCount = doc.bufferedPageRange().count;
+    const footerY = doc.page.height - margin + 5;
+    const ts = new Date().toLocaleString("en-US", { timeZone: "America/Denver" });
     for (let p = 0; p < pageCount; p++) {
       doc.switchToPage(p);
-      doc.fontSize(8).text(`Generated: ${ts}`, margin, doc.page.height - margin + 5);
+      doc.fontSize(8).text(
+        `Reference ID: ${referenceId || ""}  ${ts}`,
+        margin,
+        footerY
+      );
       doc.text(
-        `Page ${p + 1} of ${pageCount}`,
-        doc.page.width - margin - 70,
-        doc.page.height - margin + 5
+        `Nameplate Label Summary  Page ${p + 1} of ${pageCount}`,
+        doc.page.width - margin - 200,
+        footerY
       );
     }
 
