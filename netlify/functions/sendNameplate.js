@@ -2,15 +2,30 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const PDFDocument = require("pdfkit");
 
 const BUCKET = process.env.S3_BUCKET || "matrix-systems-labels";
-// Hard-code the S3 region for this bucket; ignore AWS_REGION to avoid mismatch
-const REGION = "us-west-1";
+
+// Use Netlify's MY_* AWS env vars (bucket is in us-west-1)
+const REGION = process.env.MY_AWS_REGION || "us-west-1";
+const AWS_ACCESS_KEY_ID = process.env.MY_AWS_ACCESS_KEY_ID;
+const AWS_SECRET_ACCESS_KEY = process.env.MY_AWS_SECRET_ACCESS_KEY;
 const ZAPIER_HOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 
 const s3 = new S3Client({
   region: REGION,
+  credentials:
+    AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY
+      ? {
+          accessKeyId: AWS_ACCESS_KEY_ID,
+          secretAccessKey: AWS_SECRET_ACCESS_KEY,
+        }
+      : undefined,
 });
 
-console.log("sendNameplate S3 config:", { REGION, BUCKET });
+console.log("sendNameplate S3 config:", {
+  REGION,
+  BUCKET,
+  hasAccessKey: !!AWS_ACCESS_KEY_ID,
+  hasSecretKey: !!AWS_SECRET_ACCESS_KEY,
+});
 
 // Inline PDF generator – no external local modules
 function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
@@ -109,11 +124,19 @@ exports.handler = async (event) => {
       };
     }
 
-    if (!REGION || !BUCKET || !ZAPIER_HOOK_URL) {
+    if (
+      !REGION ||
+      !BUCKET ||
+      !ZAPIER_HOOK_URL ||
+      !AWS_ACCESS_KEY_ID ||
+      !AWS_SECRET_ACCESS_KEY
+    ) {
       console.error("Missing required env vars", {
         REGION,
         BUCKET,
         ZAPIER_HOOK_URL,
+        hasAccessKey: !!AWS_ACCESS_KEY_ID,
+        hasSecretKey: !!AWS_SECRET_ACCESS_KEY,
       });
       return {
         statusCode: 500,
