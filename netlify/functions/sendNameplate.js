@@ -55,7 +55,6 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
     const previewCol = 120;
     const sizeCol = 220;
     const fontCol = 160;
-    const qtyCol = 60;
     const rowH = 70;
 
     const headerY = margin;
@@ -81,11 +80,6 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
     doc.text("Preview", margin, tableHeaderY);
     doc.text("Size/Name", margin + previewCol + 10, tableHeaderY);
     doc.text("Font", margin + previewCol + sizeCol + 20, tableHeaderY);
-    const qtyHeaderX = margin + previewCol + sizeCol + fontCol + 30;
-    doc.text("Qty", qtyHeaderX, tableHeaderY, {
-      width: qtyCol,
-      align: "center",
-    });
 
     doc.save();
     doc.strokeColor("#DDDDDD").lineWidth(1);
@@ -106,10 +100,6 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
         doc.text("Preview", margin, newTableHeaderY);
         doc.text("Size/Name", margin + previewCol + 10, newTableHeaderY);
         doc.text("Font", margin + previewCol + sizeCol + 20, newTableHeaderY);
-        doc.text("Qty", qtyHeaderX, newTableHeaderY, {
-          width: qtyCol,
-          align: "center",
-        });
 
         doc.save();
         doc.strokeColor("#DDDDDD").lineWidth(1);
@@ -140,7 +130,8 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
         doc.text(t.name, sizeX, sizeY);
         sizeY += 14;
       }
-      const sizeLine = `${t.heightInches || "0"}" × ${t.widthInches || "0"}"`;
+      const qty = t.quantity || 1;
+      const sizeLine = `${t.heightInches || "0"}" × ${t.widthInches || "0"}"    Qty: ${qty}`;
       doc.text(sizeLine, sizeX, sizeY);
 
       const fontX = margin + previewCol + sizeCol + 20;
@@ -151,12 +142,6 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
           : "");
 
       doc.text(fontDisplay, fontX, currentY + 5);
-
-      const qtyX = qtyHeaderX;
-      doc.fontSize(10).text(String(t.quantity || 1), qtyX, currentY + 5, {
-        width: qtyCol,
-        align: "center",
-      });
 
       currentY += rowH;
     });
