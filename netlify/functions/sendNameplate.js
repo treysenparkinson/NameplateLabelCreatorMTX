@@ -176,7 +176,8 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
 function generateNameplateExcel({ referenceId, templates }) {
   const headerRow1 = [`Reference ID: ${referenceId || ""}`];
   const headerRow2 = [
-    "SIZE",
+    "H (in)",
+    "W (in)",
     "COLOR",
     "VAR1",
     "VAR2",
@@ -193,7 +194,8 @@ function generateNameplateExcel({ referenceId, templates }) {
   ];
 
   const rows = (templates || []).map((t) => {
-    const sizeLabel = t.sizeLabel || `${t.heightInches}" x ${t.widthInches}"`;
+    const heightVal = t.heightInches != null ? t.heightInches : "";
+    const widthVal = t.widthInches != null ? t.widthInches : "";
     const colorLabel = t.colorPalette || "";
     const lineTexts = (t.lines || []).map((l) => l.text || "");
     const lineSizes = (t.lines || []).map((l) => l.fontSizePt || "");
@@ -204,7 +206,8 @@ function generateNameplateExcel({ referenceId, templates }) {
       varSizes[i] = lineSizes[i] || "";
     }
     return [
-      sizeLabel,
+      heightVal,
+      widthVal,
       colorLabel,
       vars[0],
       vars[1],
