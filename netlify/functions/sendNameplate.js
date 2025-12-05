@@ -178,6 +178,7 @@ exports.handler = async (event) => {
           Key: key,
           Body: pdfBuffer,
           ContentType: "application/pdf",
+          ACL: "public-read",
         })
       );
     } catch (err) {
