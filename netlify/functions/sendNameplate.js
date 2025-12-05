@@ -202,16 +202,18 @@ exports.handler = async (event) => {
 
     console.log("Posting to Zapier", { ZAPIER_HOOK_URL });
 
+    const zapierPayload = {
+      referenceId,
+      contact,
+      templates,
+      pdfUrl,
+      source: "nameplate-label-creator",
+    };
+
     const zapierRes = await fetch(ZAPIER_HOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        referenceId,
-        contact,
-        templates,
-        pdfUrl,
-        source: "nameplate-label-creator",
-      }),
+      body: JSON.stringify(zapierPayload),
     });
 
     if (!zapierRes.ok) {
