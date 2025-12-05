@@ -2,7 +2,8 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const PDFDocument = require("pdfkit");
 
 const BUCKET = process.env.S3_BUCKET || "matrix-systems-labels";
-const REGION = process.env.AWS_REGION || "us-west-1";
+// Hard-code the S3 region for this bucket; ignore AWS_REGION to avoid mismatch
+const REGION = "us-west-1";
 const ZAPIER_HOOK_URL = process.env.ZAPIER_HOOK_URL_NAMEPLATE;
 
 const s3 = new S3Client({
