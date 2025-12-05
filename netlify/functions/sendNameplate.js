@@ -31,59 +31,94 @@ console.log("sendNameplate S3 config:", {
 // Inline PDF generator – no external local modules
 function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    const doc = new PDFDocument({ size: "A4", margin: 50, bufferPages: true });
 
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", (err) => reject(err));
 
+    const margin = 50;
+    const previewCol = 120;
+    const sizeCol = 220;
+    const fontCol = 120;
+    const qtyCol = 60;
+    const rowH = 80;
+    let currentY = margin + 70;
+
     // Header
-    doc.fontSize(20).text("Saved Labels Summary", { align: "left" });
-    doc.moveDown(0.5);
-
+    doc.fontSize(20).text("Saved Labels Summary", margin, margin);
     doc.fontSize(10);
-    if (referenceId) {
-      doc.text(`Reference ID: ${referenceId}`);
-    }
-    if (contact?.name || contact?.email) {
+    if (referenceId) doc.text(`Reference ID: ${referenceId}`, margin, margin + 25);
+    if (contact?.name || contact?.email)
       doc.text(
-        `Contact: ${contact?.name || ""}${
-          contact?.email ? ` <${contact.email}>` : ""
-        }`
-      );
-    }
-
-    doc.moveDown();
-
-    // Each template row
-    templates.forEach((t, index) => {
-      doc.fontSize(11).text(`Label ${index + 1}`, { underline: true });
-      doc.moveDown(0.15);
-
-      doc.fontSize(10);
-      doc.text(
-        `Size: ${t.heightInches}" x ${t.widthInches}"  |  Qty: ${t.quantity}`
-      );
-      doc.text(
-        `Font: ${t.fontFamily}  |  Color: ${t.colorPalette}  |  Corners: ${t.cornerStyle}`
+        `Contact: ${contact.name || ""}${
+          contact.email ? ` <${contact.email}>` : ""
+        }`,
+        margin,
+        margin + 38
       );
 
-      if (Array.isArray(t.lines)) {
-        t.lines.forEach((line, i) => {
-          doc.text(
-            `Line ${i + 1}: "${line.text || ""}" (${line.fontSizePt || ""} pt)`
-          );
-        });
+    // Column headers
+    const headerY = margin + 55;
+    doc.fontSize(11);
+    doc.text("Preview", margin, headerY);
+    doc.text("Size/Name", margin + previewCol + 10, headerY);
+    doc.text("Font", margin + previewCol + sizeCol + 20, headerY);
+    doc.text("Qty", margin + previewCol + sizeCol + fontCol + 30, headerY);
+
+    // Rows
+    templates.forEach((t) => {
+      if (currentY + rowH > doc.page.height - margin) {
+        doc.addPage();
+        currentY = margin + 25;
+        doc.fontSize(11);
+        doc.text("Preview", margin, currentY);
+        doc.text("Size/Name", margin + previewCol + 10, currentY);
+        doc.text("Font", margin + previewCol + sizeCol + 20, currentY);
+        doc.text("Qty", margin + previewCol + sizeCol + fontCol + 30, currentY);
+        currentY += 25;
       }
 
-      doc.moveDown();
+      if (t.previewDataUrl) {
+        try {
+          const imgBuf = Buffer.from(t.previewDataUrl.split(",")[1], "base64");
+          doc.image(imgBuf, margin, currentY, {
+            width: previewCol - 10,
+            height: rowH - 10,
+            fit: [previewCol - 10, rowH - 10],
+          });
+        } catch {}
+      }
+
+      const sizeX = margin + previewCol + 10;
+      doc.fontSize(10).text(
+        `${t.heightInches || "0"}" × ${t.widthInches || "0"}"`,
+        sizeX,
+        currentY + 5
+      );
+
+      const fontX = margin + previewCol + sizeCol + 20;
+      doc.text(t.fontFamily || "", fontX, currentY + 5);
+
+      const qtyX = margin + previewCol + sizeCol + fontCol + 30;
+      doc.text(String(t.quantity || 1), qtyX, currentY + 5);
+
+      currentY += rowH;
     });
 
-    // Footer
-    const timestamp = new Date().toISOString();
-    doc.moveDown();
-    doc.fontSize(8).text(`Generated: ${timestamp}`);
+    // Footer with page numbers
+    const ts = new Date().toISOString();
+    const pageCount = doc.bufferedPageRange().count;
+    for (let p = 0; p < pageCount; p++) {
+      doc.switchToPage(p);
+      doc.fontSize(8).text(`Generated: ${ts}`, margin, doc.page.height - margin + 5);
+      doc.text(
+        `Page ${p + 1} of ${pageCount}`,
+        doc.page.width - margin - 70,
+        doc.page.height - margin + 5
+      );
+    }
 
     doc.end();
   });
