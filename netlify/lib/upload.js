@@ -30,3 +30,4 @@ async function putPdf({ key, buffer, contentType = 'application/pdf' }) {
 }
 
 module.exports = { putPdf };
+
