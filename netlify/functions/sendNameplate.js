@@ -33,6 +33,16 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 50, bufferPages: true });
 
+    try {
+      doc.registerFont(
+        "Montserrat",
+        "netlify/lib/pdf/fonts/Montserrat-Regular.ttf"
+      );
+      doc.font("Montserrat");
+    } catch (e) {
+      console.error("Failed to load Montserrat font, using default", e);
+    }
+
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -51,14 +61,9 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
     const headerY = margin;
     doc.fontSize(20).text("Nameplate Label Summary", margin, headerY);
     doc.fontSize(9).text(
-      `Reference ID: ${referenceId || ""}`,
-      doc.page.width - margin - 200,
-      margin
-    );
-    doc.text(
       `Generated: ${headerTimestamp}`,
       doc.page.width - margin - 200,
-      margin + 12
+      margin
     );
     doc.fontSize(10);
     if (referenceId) doc.text(`Reference ID: ${referenceId}`, margin, headerY + 25);
@@ -71,7 +76,7 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
         headerY + 38
       );
 
-    const tableHeaderY = headerY + 60;
+    const tableHeaderY = margin + 70;
     doc.fontSize(11);
     doc.text("Preview", margin, tableHeaderY);
     doc.text("Size/Name", margin + previewCol + 10, tableHeaderY);
@@ -79,7 +84,15 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
     const qtyHeaderX = margin + previewCol + sizeCol + fontCol + 30;
     doc.text("Qty", qtyHeaderX, tableHeaderY, { width: qtyCol, align: "center" });
 
-    let currentY = tableHeaderY + 20;
+    doc.save();
+    doc.strokeColor("#DDDDDD").lineWidth(1);
+    doc
+      .moveTo(margin, tableHeaderY + 14)
+      .lineTo(doc.page.width - margin, tableHeaderY + 14)
+      .stroke();
+    doc.restore();
+
+    let currentY = tableHeaderY + 24;
 
     templates.forEach((t) => {
       if (currentY + rowH > doc.page.height - margin) {
@@ -89,7 +102,14 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
         doc.text("Size/Name", margin + previewCol + 10, tableHeaderY);
         doc.text("Font", margin + previewCol + sizeCol + 20, tableHeaderY);
         doc.text("Qty", qtyHeaderX, tableHeaderY, { width: qtyCol, align: "center" });
-        currentY = tableHeaderY + 20;
+        doc.save();
+        doc.strokeColor("#DDDDDD").lineWidth(1);
+        doc
+          .moveTo(margin, tableHeaderY + 14)
+          .lineTo(doc.page.width - margin, tableHeaderY + 14)
+          .stroke();
+        doc.restore();
+        currentY = tableHeaderY + 24;
       }
 
       if (t.previewDataUrl) {
