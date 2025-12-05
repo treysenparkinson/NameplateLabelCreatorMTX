@@ -1,6 +1,7 @@
 const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const PDFDocument = require("pdfkit");
+const XLSX = require("xlsx");
 
 const BUCKET = process.env.S3_BUCKET || "matrix-systems-labels";
 
@@ -172,6 +173,60 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
   });
 }
 
+function generateNameplateExcel({ referenceId, templates }) {
+  const headerRow1 = [`Reference ID: ${referenceId || ""}`];
+  const headerRow2 = [
+    "SIZE",
+    "COLOR",
+    "VAR1",
+    "VAR2",
+    "VAR3",
+    "VAR4",
+    "VAR5",
+    "VAR6",
+    "VAR1 SIZE (pt)",
+    "VAR2 SIZE (pt)",
+    "VAR3 SIZE (pt)",
+    "VAR4 SIZE (pt)",
+    "VAR5 SIZE (pt)",
+    "VAR6 SIZE (pt)",
+  ];
+
+  const rows = (templates || []).map((t) => {
+    const sizeLabel = t.sizeLabel || `${t.heightInches}" x ${t.widthInches}"`;
+    const colorLabel = t.colorPalette || "";
+    const lineTexts = (t.lines || []).map((l) => l.text || "");
+    const lineSizes = (t.lines || []).map((l) => l.fontSizePt || "");
+    const vars = [],
+      varSizes = [];
+    for (let i = 0; i < 6; i++) {
+      vars[i] = lineTexts[i] || "";
+      varSizes[i] = lineSizes[i] || "";
+    }
+    return [
+      sizeLabel,
+      colorLabel,
+      vars[0],
+      vars[1],
+      vars[2],
+      vars[3],
+      vars[4],
+      vars[5],
+      varSizes[0],
+      varSizes[1],
+      varSizes[2],
+      varSizes[3],
+      varSizes[4],
+      varSizes[5],
+    ];
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headerRow1, headerRow2, ...rows]);
+  XLSX.utils.book_append_sheet(wb, ws, "Nameplate Labels");
+  return XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+}
+
 exports.handler = async (event) => {
   console.log("sendNameplate invoked");
 
@@ -238,6 +293,7 @@ exports.handler = async (event) => {
       contact,
       templates,
     });
+    const excelBuffer = generateNameplateExcel({ referenceId, templates });
 
     if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
       console.error("PDF generator did not return a Buffer");
@@ -251,15 +307,15 @@ exports.handler = async (event) => {
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const key = `nameplate/${referenceId}/${timestamp}.pdf`;
+    const pdfKey = `nameplate/${referenceId}/${timestamp}.pdf`;
 
-    console.log("Uploading PDF to S3", { bucket: BUCKET, key });
+    console.log("Uploading PDF to S3", { bucket: BUCKET, key: pdfKey });
 
     try {
       await s3.send(
         new PutObjectCommand({
           Bucket: BUCKET,
-          Key: key,
+          Key: pdfKey,
           Body: pdfBuffer,
           ContentType: "application/pdf",
         })
@@ -287,13 +343,50 @@ exports.handler = async (event) => {
       s3,
       new GetObjectCommand({
         Bucket: BUCKET,
-        Key: key,
+        Key: pdfKey,
       }),
       { expiresIn: 60 * 60 * 24 }
     );
 
     const pdfUrl = signedUrl;
     console.log("Generated presigned pdfUrl:", pdfUrl);
+
+    const excelKey = `nameplate/${referenceId}/${timestamp}.xlsx`;
+    console.log("Uploading Excel to S3", { bucket: BUCKET, key: excelKey });
+
+    try {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: excelKey,
+          Body: excelBuffer,
+          ContentType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+    } catch (err) {
+      console.error("S3 upload error", {
+        code: err.Code || err.name,
+        message: err.message,
+        endpoint: err.$metadata?.endpoint || undefined,
+        httpStatusCode: err.$metadata?.httpStatusCode,
+      });
+
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          success: false,
+          message: "Failed to upload Excel to S3.",
+          errorCode: err.Code || err.name,
+        }),
+      };
+    }
+
+    const excelUrl = await getSignedUrl(
+      s3,
+      new GetObjectCommand({ Bucket: BUCKET, Key: excelKey }),
+      { expiresIn: 60 * 60 * 24 }
+    );
 
     console.log("Posting to Zapier", { ZAPIER_HOOK_URL });
 
@@ -302,6 +395,7 @@ exports.handler = async (event) => {
       contact,
       templates,
       pdfUrl,
+      excelUrl,
       source: "nameplate-label-creator",
     };
 
