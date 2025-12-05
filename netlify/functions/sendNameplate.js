@@ -145,8 +145,8 @@ function generateNameplateSummaryPdf({ referenceId, contact, templates }) {
 
       doc.text(fontDisplay, fontX, currentY + 5);
 
-      const qtyX = margin + previewCol + sizeCol + fontCol + 30;
-      doc.fontSize(10).text(`Qty: ${t.quantity || 1}`, qtyX, currentY + 5, {
+      const qtyX = qtyHeaderX;
+      doc.fontSize(10).text(String(t.quantity || 1), qtyX, currentY + 5, {
         width: qtyCol,
         align: "center",
       });
