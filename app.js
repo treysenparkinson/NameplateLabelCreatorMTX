@@ -100,6 +100,29 @@ function scalePreviewToFit() {
   fitBox.style.height = `${naturalH}px`;
 }
 
+function isMobileView() {
+  const isSmallWidth = window.innerWidth < 1024;
+  const isMobileAgent = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return isSmallWidth || isMobileAgent;
+}
+
+function updateNameplateMobileState() {
+  const overlay = document.getElementById('nameplateMobileOverlay');
+  const appRoot = document.getElementById('nlc-root');
+
+  if (!overlay || !appRoot) return;
+
+  if (isMobileView()) {
+    overlay.style.display = 'flex';
+    appRoot.style.pointerEvents = 'none';
+    appRoot.style.filter = 'blur(2px)';
+  } else {
+    overlay.style.display = 'none';
+    appRoot.style.pointerEvents = 'auto';
+    appRoot.style.filter = 'none';
+  }
+}
+
 function renderContactSummary() {
   const { name, email } = getSavedContact();
   const el = document.getElementById('contactSummary');
@@ -409,7 +432,10 @@ if (typeof ResizeObserver !== 'undefined' && previewWrapEl) {
 let _resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(scalePreviewToFit, 100);
+  _resizeTimer = setTimeout(() => {
+    scalePreviewToFit();
+    updateNameplateMobileState();
+  }, 100);
 });
 
 function saveToStorage() {
@@ -603,4 +629,7 @@ function init() {
 
   render();
 }
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  updateNameplateMobileState();
+});
